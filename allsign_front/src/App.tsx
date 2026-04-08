@@ -1,13 +1,14 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
-import Sidebar from './components/Sidebar';
-import Login from './pages/Login';
+import Sidebar from './components/sidebar/Sidebar';
+import Login from './components/login/Login';
+import Home from './components/home/Home';
 
 // Mock do Dashboard
 const Dashboard = () => (
   <div className="p-8">
-    <h1 className="text-2xl font-bold dark:text-white">Dashboard</h1>
-    <p className="mt-4 text-gray-600 dark:text-gray-400">Bem-vindo ao sistema AllSign.</p>
+    <h1 className="text-2xl font-bold dark:text-white text-sky-600">Dashboard</h1>
+    <p className="mt-4 text-gray-600 dark:text-gray-400">Bem-vindo ao sistema AllSol.</p>
   </div>
 );
 
@@ -38,15 +39,15 @@ function App() {
   return (
     <Router>
       <Routes>
+        <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         
         <Route element={<PrivateRoute />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/create-user" element={<CreateUser />} />
-          <Route path="/" element={<Navigate to="/dashboard" />} />
         </Route>
 
-        <Route path="*" element={<Navigate to="/login" />} />
+        <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </Router>
   );
