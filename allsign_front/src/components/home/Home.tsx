@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './Home.css';
 import { Link } from 'react-router-dom';
-import { Search, Phone, User, X, ChevronLeft, ChevronRight, MessageSquare, Plus, Accessibility } from 'lucide-react';
+import { Search, Phone, User, X, ChevronLeft, ChevronRight, Plus, Accessibility } from 'lucide-react';
 import heroImg from '../../assets/images/fotoex1.jpg'; // Certifique-se de que o caminho da imagem está correto
 
 const Home: React.FC = () => {

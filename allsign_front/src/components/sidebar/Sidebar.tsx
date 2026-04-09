@@ -3,7 +3,6 @@ import './Sidebar.css';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, 
-  UserPlus, 
   LogOut, 
   Menu, 
   X,
@@ -23,8 +22,7 @@ const Sidebar: React.FC = () => {
 
   const navItems = [
     { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={20} /> },
-    { name: 'Criar Cliente', path: '/create-client', icon: <UserPlus size={20} /> },
-    { name: 'Lista Clientes', path: '/clients', icon: <Users size={20} /> },
+    { name: 'Clientes', path: '/clients', icon: <Users size={20} /> },
   ];
 
   return (
