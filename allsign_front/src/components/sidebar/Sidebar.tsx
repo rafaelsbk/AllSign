@@ -23,8 +23,8 @@ const Sidebar: React.FC = () => {
 
   const navItems = [
     { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={20} /> },
-    { name: 'Criar Usuário', path: '/create-user', icon: <UserPlus size={20} /> },
-    { name: 'Lista Usuários', path: '/users', icon: <Users size={20} /> },
+    { name: 'Criar Cliente', path: '/create-client', icon: <UserPlus size={20} /> },
+    { name: 'Lista Clientes', path: '/clients', icon: <Users size={20} /> },
   ];
 
   return (
