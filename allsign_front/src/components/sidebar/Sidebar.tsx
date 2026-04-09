@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
+import './Sidebar.css';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, 
-  UserPlus, 
   LogOut, 
   Menu, 
   X,
@@ -22,15 +22,14 @@ const Sidebar: React.FC = () => {
 
   const navItems = [
     { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={20} /> },
-    { name: 'Criar Usuário', path: '/create-user', icon: <UserPlus size={20} /> },
-    { name: 'Lista Usuários', path: '/users', icon: <Users size={20} /> },
+    { name: 'Clientes', path: '/clients', icon: <Users size={20} /> },
   ];
 
   return (
     <>
       {/* Botão Mobile Menu */}
       <button 
-        className="fixed top-4 left-4 z-50 rounded-lg bg-indigo-600 p-2 text-white md:hidden"
+        className="fixed top-4 left-4 z-50 rounded-lg bg-blue-600 p-2 text-white md:hidden"
         onClick={() => setIsOpen(!isOpen)}
       >
         {isOpen ? <X size={24} /> : <Menu size={24} />}
@@ -50,7 +49,7 @@ const Sidebar: React.FC = () => {
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
         <div className="mb-8 px-2 py-4">
-          <h2 className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">AllSign</h2>
+          <h2 className="text-3xl font-extrabold text-blue-700 dark:text-blue-500 tracking-tight">AllSol</h2>
         </div>
 
         <nav className="space-y-2">
@@ -62,7 +61,7 @@ const Sidebar: React.FC = () => {
               className={`
                 flex items-center space-x-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors
                 ${location.pathname === item.path 
-                  ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400' 
+                  ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' 
                   : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-zinc-700'}
               `}
             >
@@ -73,7 +72,7 @@ const Sidebar: React.FC = () => {
 
           <button
             onClick={handleLogout}
-            className="flex w-full items-center space-x-3 rounded-lg px-3 py-2 text-sm font-medium text-red-500 transition-colors hover:bg-red-50 dark:hover:bg-red-900/20"
+            className="flex w-full items-center space-x-3 rounded-lg px-3 py-2 text-sm font-medium text-red-500 transition-colors hover:bg-red-50 dark:hover:bg-red-900/20 mt-auto"
           >
             <LogOut size={20} />
             <span>Sair</span>

@@ -1,0 +1,14 @@
+/* Home.css */
+.hero-gradient-mask {
+  /* Cria o efeito de transição suave onde o lado esquerdo da foto fica invisível (mostrando o fundo azul) e vai aparecendo para a direita */
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, rgba(0,0,0,1) 45%);
+  mask-image: linear-gradient(to right, transparent 0%, rgba(0,0,0,1) 45%);
+}
+
+@media (max-width: 768px) {
+  /* Em telas menores (celulares), a máscara muda para vir de baixo para cima, adaptando-se melhor ao layout vertical */
+  .hero-gradient-mask {
+    -webkit-mask-image: linear-gradient(to top, transparent 0%, rgba(0,0,0,1) 60%);
+    mask-image: linear-gradient(to top, transparent 0%, rgba(0,0,0,1) 60%);
+  }
+}

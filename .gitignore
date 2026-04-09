@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+allsign_env/
+
+# Django
+db.sqlite3
+db.sqlite3-journal
+media/
+static/
+.env
+
+# Node.js (Frontend)
+allsign_front/node_modules/
+allsign_front/dist/
+allsign_front/dist-ssr/
+*.local
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

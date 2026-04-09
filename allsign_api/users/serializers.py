@@ -1,5 +1,15 @@
 from rest_framework import serializers
-from .models import User
+from .models import User, Client
+
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+
+class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        # Add custom claims
+        token['role'] = user.role
+        return token
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
@@ -16,3 +26,11 @@ class UserSerializer(serializers.ModelSerializer):
             role=validated_data.get('role', User.Role.USER)
         )
         return user
+
+class ClientSerializer(serializers.ModelSerializer):
+    seller_name = serializers.CharField(source='seller.username', read_only=True)
+
+    class Meta:
+        model = Client
+        fields = ('id', 'name', 'email', 'phone', 'cpf', 'cep', 'seller', 'seller_name', 'created_at')
+        read_only_fields = ('seller', 'created_at')
