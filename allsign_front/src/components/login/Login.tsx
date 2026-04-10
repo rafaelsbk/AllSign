@@ -21,7 +21,14 @@ const Login: React.FC = () => {
       localStorage.setItem('refresh_token', response.data.refresh);
       navigate('/dashboard');
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Usuário ou senha inválidos');
+      console.error('Erro de login:', err);
+      if (err.code === 'ERR_NETWORK') {
+        setError('Erro de conexão: O servidor não está respondendo. Verifique sua internet ou se o serviço está ativo.');
+      } else if (err.response?.status === 401) {
+        setError('Usuário ou senha inválidos.');
+      } else {
+        setError(err.response?.data?.detail || 'Ocorreu um erro inesperado ao tentar entrar.');
+      }
     } finally {
       setLoading(false);
     }

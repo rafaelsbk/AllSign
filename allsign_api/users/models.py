@@ -32,7 +32,7 @@ class Client(models.Model):
     name = models.CharField(max_length=255)
     email = models.EmailField()
     cpf = models.CharField(max_length=18, unique=True) # Suporta CPF e CNPJ com máscara
-    rg = models.CharField(max_length=20, null=True, blank=True)
+    rg = models.CharField(max_length=20, unique=True, null=True, blank=True)
     birth_date = models.DateField(null=True, blank=True)
     marital_status = models.CharField(
         max_length=20, 

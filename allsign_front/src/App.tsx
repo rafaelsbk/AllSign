@@ -4,7 +4,7 @@ import Sidebar from './components/sidebar/Sidebar';
 import Login from './components/login/Login';
 import Home from './components/home/Home';
 import api from './services/api';
-import { Search, Plus, Edit, Trash2, X, CheckCircle } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, X, CheckCircle, Eye } from 'lucide-react';
 import { jwtDecode } from 'jwt-decode';
 
 // Componente Toast de Sucesso
@@ -23,6 +23,66 @@ const SuccessToast = ({ message, onClose }: { message: string, onClose: () => vo
       </button>
     </div>
   );
+};
+
+// Componente Toast de Erro
+const ErrorToast = ({ message, onClose }: { message: string, onClose: () => void }) => {
+  useEffect(() => {
+    const timer = setTimeout(onClose, 5000);
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
+  return (
+    <div className="fixed bottom-8 right-8 z-[60] flex items-center space-x-3 bg-red-500 text-white px-6 py-4 rounded-xl shadow-2xl animate-in slide-in-from-bottom-5 duration-300">
+      <X size={24} className="bg-white/20 rounded-full p-1" />
+      <span className="font-bold">{message}</span>
+      <button onClick={onClose} className="hover:bg-red-600 p-1 rounded-full transition-colors">
+        <X size={18} />
+      </button>
+    </div>
+  );
+};
+
+// Utilitário para formatar erros da API
+const parseApiError = (err: any, defaultMsg: string = 'Ocorreu um erro.') => {
+  console.error('Erro detalhado da API:', err);
+  
+  if (err.code === 'ERR_NETWORK') {
+    return 'Erro de conexão: O servidor não está respondendo. Verifique sua conexão ou se o serviço está ativo.';
+  }
+
+  if (err.response?.data) {
+    const errorData = err.response.data;
+    
+    if (typeof errorData === 'string') return errorData;
+    if (errorData.detail) return errorData.detail;
+    
+    // Nomes amigáveis para os campos
+    const fieldNames: {[key: string]: string} = {
+      cpf: 'CPF',
+      rg: 'RG',
+      email: 'E-mail',
+      name: 'Nome',
+      birth_date: 'Data de Nascimento',
+      cep: 'CEP',
+      phone: 'Telefone',
+      phones: 'Telefones',
+      username: 'Usuário',
+      password: 'Senha'
+    };
+
+    if (typeof errorData === 'object') {
+      return Object.entries(errorData)
+        .map(([field, msgs]: any) => {
+          const label = fieldNames[field] || field;
+          const message = Array.isArray(msgs) ? msgs.join(', ') : msgs;
+          return `${label}: ${message}`;
+        })
+        .join(' | ');
+    }
+  }
+
+  return defaultMsg;
 };
 
 // Função para pegar o role do usuário do token
@@ -48,7 +108,7 @@ const Dashboard = () => (
 );
 
 // Componente Modal de Formulário de Cliente (Criação e Edição)
-const ClientFormModal = ({ isOpen, onClose, client, onSuccess }: any) => {
+const ClientFormModal = ({ isOpen, onClose, client, onSuccess, isViewOnly }: any) => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -105,6 +165,7 @@ const ClientFormModal = ({ isOpen, onClose, client, onSuccess }: any) => {
   if (!isOpen) return null;
 
   const handlePhoneChange = (index: number, value: string) => {
+    if (isViewOnly) return;
     // Remove tudo que não é número
     const numbers = value.replace(/\D/g, '');
     
@@ -126,6 +187,7 @@ const ClientFormModal = ({ isOpen, onClose, client, onSuccess }: any) => {
   };
 
   const handleCEPChange = async (value: string) => {
+    if (isViewOnly) return;
     const numbers = value.replace(/\D/g, '').slice(0, 8);
     let formatted = numbers;
     
@@ -157,6 +219,7 @@ const ClientFormModal = ({ isOpen, onClose, client, onSuccess }: any) => {
   };
 
   const handleCPFCNPJChange = (value: string) => {
+    if (isViewOnly) return;
     const numbers = value.replace(/\D/g, '').slice(0, 14); // Limita a 14 dígitos (CNPJ)
     let formatted = numbers;
 
@@ -180,10 +243,12 @@ const ClientFormModal = ({ isOpen, onClose, client, onSuccess }: any) => {
   };
 
   const addPhone = () => {
+    if (isViewOnly) return;
     setFormData({ ...formData, phones: [...formData.phones, { phone: '' }] });
   };
 
   const removePhone = (index: number) => {
+    if (isViewOnly) return;
     if (formData.phones.length > 1) {
       const newPhones = formData.phones.filter((_, i) => i !== index);
       setFormData({ ...formData, phones: newPhones });
@@ -192,6 +257,7 @@ const ClientFormModal = ({ isOpen, onClose, client, onSuccess }: any) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isViewOnly) return;
     setLoading(true);
     setError('');
     
@@ -208,11 +274,10 @@ const ClientFormModal = ({ isOpen, onClose, client, onSuccess }: any) => {
       number: formData.number || null,
       complement: formData.complement || null,
       rg: formData.rg || null,
-      birth_date: formData.birth_date || null, // Se estiver "", vira null
+      birth_date: formData.birth_date || null,
       marital_status: formData.marital_status,
       education_level: formData.education_level,
       is_active: formData.is_active,
-      // Formata telefones: remove vazios e envia apenas o campo 'phone'
       phones: formData.phones
         .filter(p => p.phone && p.phone.trim() !== '')
         .map(p => ({ phone: p.phone.trim() }))
@@ -227,23 +292,7 @@ const ClientFormModal = ({ isOpen, onClose, client, onSuccess }: any) => {
       onSuccess();
       onClose();
     } catch (err: any) {
-      const errorData = err.response?.data;
-      console.error('Erro detalhado da API:', errorData);
-      let errorMessage = 'Erro ao salvar cliente.';
-      
-      if (errorData) {
-        if (typeof errorData === 'string') {
-          errorMessage = errorData;
-        } else if (errorData.detail) {
-          errorMessage = errorData.detail;
-        } else {
-          // Concatena mensagens de erro de campos específicos (ex: { "cpf": ["Este campo é obrigatório"] })
-          errorMessage = Object.entries(errorData)
-            .map(([field, msgs]: any) => `${field}: ${msgs.join(', ')}`)
-            .join(' | ');
-        }
-      }
-      setError(errorMessage);
+      setError(parseApiError(err, 'Erro ao salvar cliente.'));
     } finally {
       setLoading(false);
     }
@@ -254,7 +303,7 @@ const ClientFormModal = ({ isOpen, onClose, client, onSuccess }: any) => {
       <div className="w-full max-w-2xl rounded-xl bg-white p-6 shadow-xl dark:bg-zinc-800 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-6 sticky top-0 bg-white dark:bg-zinc-800 z-10 pb-2">
           <h2 className="text-xl font-bold dark:text-white">
-            {client ? 'Editar Cliente' : 'Cadastrar Novo Cliente'}
+            {isViewOnly ? 'Visualizar Cliente' : (client ? 'Editar Cliente' : 'Cadastrar Novo Cliente')}
           </h2>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
             <X size={24} />
@@ -262,7 +311,7 @@ const ClientFormModal = ({ isOpen, onClose, client, onSuccess }: any) => {
         </div>
 
         {error && (
-          <div className="mb-4 p-3 rounded bg-red-100 text-red-700">
+          <div className="mb-4 p-3 rounded bg-red-100 text-red-700 font-medium border border-red-200 animate-in fade-in duration-300">
             {error}
           </div>
         )}
@@ -273,7 +322,8 @@ const ClientFormModal = ({ isOpen, onClose, client, onSuccess }: any) => {
             <input
               type="text"
               required
-              className="mt-1 block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 dark:bg-zinc-900 dark:border-zinc-700 dark:text-white"
+              disabled={isViewOnly}
+              className="mt-1 block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 dark:bg-zinc-900 dark:border-zinc-700 dark:text-white disabled:opacity-75"
               value={formData.name}
               onChange={(e) => setFormData({...formData, name: e.target.value})}
             />
@@ -283,7 +333,8 @@ const ClientFormModal = ({ isOpen, onClose, client, onSuccess }: any) => {
             <input
               type="email"
               required
-              className="mt-1 block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 dark:bg-zinc-900 dark:border-zinc-700 dark:text-white"
+              disabled={isViewOnly}
+              className="mt-1 block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 dark:bg-zinc-900 dark:border-zinc-700 dark:text-white disabled:opacity-75"
               value={formData.email}
               onChange={(e) => setFormData({...formData, email: e.target.value})}
             />
@@ -295,12 +346,13 @@ const ClientFormModal = ({ isOpen, onClose, client, onSuccess }: any) => {
                 <input
                   type="text"
                   required={index === 0}
+                  disabled={isViewOnly}
                   placeholder="Número de telefone"
-                  className="flex-1 rounded-lg border border-gray-300 bg-gray-50 p-2.5 dark:bg-zinc-900 dark:border-zinc-700 dark:text-white"
+                  className="flex-1 rounded-lg border border-gray-300 bg-gray-50 p-2.5 dark:bg-zinc-900 dark:border-zinc-700 dark:text-white disabled:opacity-75"
                   value={phoneObj.phone}
                   onChange={(e) => handlePhoneChange(index, e.target.value)}
                 />
-                {formData.phones.length > 1 && (
+                {!isViewOnly && formData.phones.length > 1 && (
                   <button
                     type="button"
                     onClick={() => removePhone(index)}
@@ -311,21 +363,24 @@ const ClientFormModal = ({ isOpen, onClose, client, onSuccess }: any) => {
                 )}
               </div>
             ))}
-            <button
-              type="button"
-              onClick={addPhone}
-              className="flex items-center space-x-1 text-sm text-blue-600 hover:text-blue-700 font-medium"
-            >
-              <Plus size={16} />
-              <span>Adicionar outro telefone</span>
-            </button>
+            {!isViewOnly && (
+              <button
+                type="button"
+                onClick={addPhone}
+                className="flex items-center space-x-1 text-sm text-blue-600 hover:text-blue-700 font-medium"
+              >
+                <Plus size={16} />
+                <span>Adicionar outro telefone</span>
+              </button>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">CPF / CNPJ</label>
             <input
               type="text"
               required
-              className="mt-1 block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 dark:bg-zinc-900 dark:border-zinc-700 dark:text-white"
+              disabled={isViewOnly}
+              className="mt-1 block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 dark:bg-zinc-900 dark:border-zinc-700 dark:text-white disabled:opacity-75"
               value={formData.cpf}
               onChange={(e) => handleCPFCNPJChange(e.target.value)}
               placeholder="000.000.000-00 ou 00.000.../0001-00"
@@ -335,16 +390,20 @@ const ClientFormModal = ({ isOpen, onClose, client, onSuccess }: any) => {
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">RG</label>
             <input
               type="text"
-              className="mt-1 block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 dark:bg-zinc-900 dark:border-zinc-700 dark:text-white"
+              disabled={isViewOnly}
+              maxLength={11}
+              className="mt-1 block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 dark:bg-zinc-900 dark:border-zinc-700 dark:text-white disabled:opacity-75"
               value={formData.rg}
-              onChange={(e) => setFormData({...formData, rg: e.target.value})}
+              onChange={(e) => setFormData({...formData, rg: e.target.value.replace(/\D/g, '')})}
+              placeholder="Máx 11 números"
             />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Data de Nascimento</label>
             <input
               type="date"
-              className="mt-1 block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 dark:bg-zinc-900 dark:border-zinc-700 dark:text-white"
+              disabled={isViewOnly}
+              className="mt-1 block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 dark:bg-zinc-900 dark:border-zinc-700 dark:text-white disabled:opacity-75"
               value={formData.birth_date}
               onChange={(e) => setFormData({...formData, birth_date: e.target.value})}
             />
@@ -352,7 +411,8 @@ const ClientFormModal = ({ isOpen, onClose, client, onSuccess }: any) => {
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Estado Civil</label>
             <select
-              className="mt-1 block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 dark:bg-zinc-900 dark:border-zinc-700 dark:text-white"
+              disabled={isViewOnly}
+              className="mt-1 block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 dark:bg-zinc-900 dark:border-zinc-700 dark:text-white disabled:opacity-75"
               value={formData.marital_status}
               onChange={(e) => setFormData({...formData, marital_status: e.target.value})}
             >
@@ -366,7 +426,8 @@ const ClientFormModal = ({ isOpen, onClose, client, onSuccess }: any) => {
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Escolaridade</label>
             <select
-              className="mt-1 block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 dark:bg-zinc-900 dark:border-zinc-700 dark:text-white"
+              disabled={isViewOnly}
+              className="mt-1 block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 dark:bg-zinc-900 dark:border-zinc-700 dark:text-white disabled:opacity-75"
               value={formData.education_level}
               onChange={(e) => setFormData({...formData, education_level: e.target.value})}
             >
@@ -380,7 +441,8 @@ const ClientFormModal = ({ isOpen, onClose, client, onSuccess }: any) => {
             <input
               type="text"
               required
-              className="mt-1 block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 dark:bg-zinc-900 dark:border-zinc-700 dark:text-white"
+              disabled={isViewOnly}
+              className="mt-1 block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 dark:bg-zinc-900 dark:border-zinc-700 dark:text-white disabled:opacity-75"
               value={formData.cep}
               onChange={(e) => handleCEPChange(e.target.value)}
               placeholder="00000-000"
@@ -390,7 +452,8 @@ const ClientFormModal = ({ isOpen, onClose, client, onSuccess }: any) => {
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Rua / Logradouro</label>
             <input
               type="text"
-              className="mt-1 block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 dark:bg-zinc-900 dark:border-zinc-700 dark:text-white"
+              disabled={isViewOnly}
+              className="mt-1 block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 dark:bg-zinc-900 dark:border-zinc-700 dark:text-white disabled:opacity-75"
               value={formData.street}
               onChange={(e) => setFormData({...formData, street: e.target.value})}
             />
@@ -399,7 +462,8 @@ const ClientFormModal = ({ isOpen, onClose, client, onSuccess }: any) => {
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Número</label>
             <input
               type="text"
-              className="mt-1 block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 dark:bg-zinc-900 dark:border-zinc-700 dark:text-white"
+              disabled={isViewOnly}
+              className="mt-1 block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 dark:bg-zinc-900 dark:border-zinc-700 dark:text-white disabled:opacity-75"
               value={formData.number}
               onChange={(e) => setFormData({...formData, number: e.target.value})}
             />
@@ -408,7 +472,8 @@ const ClientFormModal = ({ isOpen, onClose, client, onSuccess }: any) => {
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Complemento</label>
             <input
               type="text"
-              className="mt-1 block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 dark:bg-zinc-900 dark:border-zinc-700 dark:text-white"
+              disabled={isViewOnly}
+              className="mt-1 block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 dark:bg-zinc-900 dark:border-zinc-700 dark:text-white disabled:opacity-75"
               value={formData.complement}
               onChange={(e) => setFormData({...formData, complement: e.target.value})}
             />
@@ -417,7 +482,8 @@ const ClientFormModal = ({ isOpen, onClose, client, onSuccess }: any) => {
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Bairro</label>
             <input
               type="text"
-              className="mt-1 block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 dark:bg-zinc-900 dark:border-zinc-700 dark:text-white"
+              disabled={isViewOnly}
+              className="mt-1 block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 dark:bg-zinc-900 dark:border-zinc-700 dark:text-white disabled:opacity-75"
               value={formData.neighborhood}
               onChange={(e) => setFormData({...formData, neighborhood: e.target.value})}
             />
@@ -426,7 +492,8 @@ const ClientFormModal = ({ isOpen, onClose, client, onSuccess }: any) => {
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Cidade</label>
             <input
               type="text"
-              className="mt-1 block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 dark:bg-zinc-900 dark:border-zinc-700 dark:text-white"
+              disabled={isViewOnly}
+              className="mt-1 block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 dark:bg-zinc-900 dark:border-zinc-700 dark:text-white disabled:opacity-75"
               value={formData.city}
               onChange={(e) => setFormData({...formData, city: e.target.value})}
             />
@@ -436,7 +503,8 @@ const ClientFormModal = ({ isOpen, onClose, client, onSuccess }: any) => {
             <input
               type="text"
               maxLength={2}
-              className="mt-1 block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 dark:bg-zinc-900 dark:border-zinc-700 dark:text-white"
+              disabled={isViewOnly}
+              className="mt-1 block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 dark:bg-zinc-900 dark:border-zinc-700 dark:text-white disabled:opacity-75"
               value={formData.state}
               onChange={(e) => setFormData({...formData, state: e.target.value.toUpperCase()})}
               placeholder="Ex: RN"
@@ -445,11 +513,12 @@ const ClientFormModal = ({ isOpen, onClose, client, onSuccess }: any) => {
 
           {/* Opção de Ativar/Desativar apenas na EDIÇÃO */}
           {client && (
-            <div className="md:col-span-2 flex items-center space-x-3 p-4 bg-gray-50 dark:bg-zinc-900/50 rounded-xl border border-gray-100 dark:border-zinc-700">
-              <label className="relative inline-flex items-center cursor-pointer">
+            <div className={`md:col-span-2 flex items-center space-x-3 p-4 bg-gray-50 dark:bg-zinc-900/50 rounded-xl border border-gray-100 dark:border-zinc-700 ${isViewOnly ? 'opacity-75' : ''}`}>
+              <label className={`relative inline-flex items-center ${isViewOnly ? 'cursor-default' : 'cursor-pointer'}`}>
                 <input 
                   type="checkbox" 
                   className="sr-only peer"
+                  disabled={isViewOnly}
                   checked={formData.is_active}
                   onChange={(e) => setFormData({...formData, is_active: e.target.checked})}
                 />
@@ -462,20 +531,31 @@ const ClientFormModal = ({ isOpen, onClose, client, onSuccess }: any) => {
           )}
 
           <div className="md:col-span-2 mt-4 flex justify-end space-x-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-6 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 dark:border-zinc-700 dark:hover:bg-zinc-700 dark:text-white transition-colors"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition-colors disabled:opacity-50"
-            >
-              {loading ? 'Salvando...' : (client ? 'Salvar Alterações' : 'Cadastrar Cliente')}
-            </button>
+            {isViewOnly ? (
+              <button
+                type="button"
+                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition-colors"
+              >
+                + Criar novo contrato
+              </button>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="px-6 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 dark:border-zinc-700 dark:hover:bg-zinc-700 dark:text-white transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition-colors disabled:opacity-50"
+                >
+                  {loading ? 'Salvando...' : (client ? 'Salvar Alterações' : 'Cadastrar Cliente')}
+                </button>
+              </>
+            )}
           </div>
         </form>
       </div>
@@ -493,6 +573,7 @@ const ClientList = () => {
   const [hasMore, setHasMore] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<any>(null);
+  const [isViewOnly, setIsViewOnly] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const userRole = getUserRole();
 
@@ -551,6 +632,13 @@ const ClientList = () => {
 
   const handleEdit = (client: any) => {
     setEditingClient(client);
+    setIsViewOnly(false);
+    setIsModalOpen(true);
+  };
+
+  const handleView = (client: any) => {
+    setEditingClient(client);
+    setIsViewOnly(true);
     setIsModalOpen(true);
   };
 
@@ -568,6 +656,7 @@ const ClientList = () => {
 
   const openCreateModal = () => {
     setEditingClient(null);
+    setIsViewOnly(false);
     setIsModalOpen(true);
   };
 
@@ -642,6 +731,13 @@ const ClientList = () => {
 
               <div className="flex items-center justify-end space-x-1 mt-2 pt-2 border-t border-gray-50 dark:border-zinc-700">
                 <button 
+                  onClick={() => handleView(client)}
+                  className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors dark:hover:bg-blue-900/20"
+                  title="Visualizar"
+                >
+                  <Eye size={16} />
+                </button>
+                <button 
                   onClick={() => handleEdit(client)}
                   className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors dark:hover:bg-blue-900/20"
                   title="Editar"
@@ -674,7 +770,7 @@ const ClientList = () => {
       )}
 
       {!loading && !hasMore && clients.length > 0 && (
-        <div className="text-center py-8 text-gray-400 text-sm">Fim da lista.</div>
+        <div className="text-center py-8 text-gray-400 text-sm">.  .  .</div>
       )}
       {/* Botão Fixo de Novo Cliente */}
       <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-30 md:left-[calc(50%+128px)]">
@@ -691,7 +787,8 @@ const ClientList = () => {
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
         client={editingClient} 
-        onSuccess={handleFormSuccess} 
+        onSuccess={handleFormSuccess}
+        isViewOnly={isViewOnly}
       />
     </div>
   );

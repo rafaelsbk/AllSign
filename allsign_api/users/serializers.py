@@ -40,6 +40,12 @@ class ClientSerializer(serializers.ModelSerializer):
     cpf = serializers.CharField(
         validators=[UniqueValidator(queryset=Client.objects.all())]
     )
+    rg = serializers.CharField(
+        validators=[UniqueValidator(queryset=Client.objects.all())],
+        required=False,
+        allow_null=True,
+        allow_blank=True
+    )
 
     class Meta:
         model = Client
@@ -50,6 +56,14 @@ class ClientSerializer(serializers.ModelSerializer):
             'seller', 'seller_name', 'is_active', 'created_at'
         )
         read_only_fields = ('seller', 'created_at')
+
+    def validate_rg(self, value):
+        if value:
+            # Remove caracteres não numéricos para contagem
+            numbers_only = ''.join(filter(str.isdigit, value))
+            if len(numbers_only) > 11:
+                raise serializers.ValidationError("O RG deve conter no máximo 11 números.")
+        return value
 
     def create(self, validated_data):
         phones_data = validated_data.pop('phones', [])
