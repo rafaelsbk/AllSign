@@ -6,7 +6,8 @@ import {
   LogOut, 
   Menu, 
   X,
-  Users
+  Users,
+  FileText
 } from 'lucide-react';
 
 const Sidebar: React.FC = () => {
@@ -23,6 +24,7 @@ const Sidebar: React.FC = () => {
   const navItems = [
     { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={20} /> },
     { name: 'Clientes', path: '/clients', icon: <Users size={20} /> },
+    { name: 'Contratos', path: '/contracts', icon: <FileText size={20} /> },
   ];
 
   return (

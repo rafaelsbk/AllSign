@@ -4,8 +4,9 @@ import Sidebar from './components/sidebar/Sidebar';
 import Login from './components/login/Login';
 import Home from './components/home/Home';
 import api from './services/api';
-import { Search, Plus, Edit, Trash2, X, CheckCircle, Eye } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, X, CheckCircle, Eye, FilePlus } from 'lucide-react';
 import { jwtDecode } from 'jwt-decode';
+import ContractOverlay from './components/ContractOverlay';
 
 // Componente Toast de Sucesso
 const SuccessToast = ({ message, onClose }: { message: string, onClose: () => void }) => {
@@ -108,7 +109,7 @@ const Dashboard = () => (
 );
 
 // Componente Modal de Formulário de Cliente (Criação e Edição)
-const ClientFormModal = ({ isOpen, onClose, client, onSuccess, isViewOnly }: any) => {
+const ClientFormModal = ({ isOpen, onClose, client, onSuccess, isViewOnly, onOpenContract }: any) => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -534,9 +535,11 @@ const ClientFormModal = ({ isOpen, onClose, client, onSuccess, isViewOnly }: any
             {isViewOnly ? (
               <button
                 type="button"
-                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition-colors"
+                onClick={() => onOpenContract(client)}
+                className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition-colors"
               >
-                + Criar novo contrato
+                <FilePlus size={20} />
+                <span>Criar novo contrato</span>
               </button>
             ) : (
               <>
@@ -574,6 +577,8 @@ const ClientList = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<any>(null);
   const [isViewOnly, setIsViewOnly] = useState(false);
+  const [isContractOpen, setIsContractOpen] = useState(false);
+  const [contractClient, setContractClient] = useState<any>(null);
   const [successMessage, setSuccessMessage] = useState('');
   const userRole = getUserRole();
 
@@ -664,6 +669,12 @@ const ClientList = () => {
     const message = editingClient ? 'Cliente atualizado com sucesso!' : 'Cliente cadastrado com sucesso!';
     setSuccessMessage(message);
     fetchClients(1, true);
+  };
+
+  const handleOpenContract = (client: any) => {
+    setContractClient(client);
+    setIsContractOpen(true);
+    setIsModalOpen(false); // Fecha o modal do cliente ao abrir o contrato
   };
 
   return (
@@ -789,6 +800,166 @@ const ClientList = () => {
         client={editingClient} 
         onSuccess={handleFormSuccess}
         isViewOnly={isViewOnly}
+        onOpenContract={handleOpenContract}
+      />
+
+      <ContractOverlay
+        isOpen={isContractOpen}
+        onClose={() => setIsContractOpen(false)}
+        client={contractClient}
+        onSuccess={() => setSuccessMessage('Contrato gerado com sucesso!')}
+      />
+    </div>
+  );
+};
+
+const ContractList = () => {
+  const [contracts, setContracts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearch] = useState('');
+  const [isContractOpen, setIsContractOpen] = useState(false);
+  const [selectedContract, setSelectedContract] = useState(null);
+  const [contractClient, setContractClient] = useState(null);
+  const [isViewOnly, setIsViewOnly] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+
+  const fetchContracts = async () => {
+    try {
+      const response = await api.get('/users/contracts/');
+      setContracts(response.data.results || response.data);
+    } catch (error) {
+      console.error('Erro ao buscar contratos:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchContracts();
+  }, []);
+
+  const handleDelete = async (id: number) => {
+    if (window.confirm('Tem certeza que deseja excluir este contrato?')) {
+      try {
+        await api.delete(`/users/contracts/${id}/`);
+        setSuccessMessage('Contrato excluído com sucesso!');
+        fetchContracts();
+      } catch (error) {
+        console.error('Erro ao excluir contrato:', error);
+      }
+    }
+  };
+
+  const handleOpenContract = async (contract: any, viewOnly = false) => {
+    try {
+      // Para garantir que temos todos os dados do cliente (RG, Endereço etc)
+      const clientRes = await api.get(`/users/clients/${contract.client}/`);
+      setContractClient(clientRes.data);
+      setSelectedContract(contract);
+      setIsViewOnly(viewOnly);
+      setIsContractOpen(true);
+    } catch (error) {
+      console.error('Erro ao carregar dados do cliente:', error);
+    }
+  };
+
+  const filteredContracts = contracts.filter((c: any) => 
+    c.client_name?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  return (
+    <div className="p-8 pb-32">
+      {successMessage && <SuccessToast message={successMessage} onClose={() => setSuccessMessage('')} />}
+      
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Meus Contratos</h1>
+          <p className="text-gray-500 dark:text-zinc-400 mt-1">Gerencie os contratos de prestação de serviço</p>
+        </div>
+      </div>
+
+      <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-sm border border-gray-100 dark:border-zinc-800 overflow-hidden">
+        <div className="p-4 border-b border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-900/50 flex items-center gap-4">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+            <input
+              type="text"
+              placeholder="Buscar por cliente..."
+              className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-gray-900 dark:text-white"
+              value={searchTerm}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-gray-50 dark:bg-zinc-800/50 text-gray-500 dark:text-zinc-400 text-sm uppercase tracking-wider">
+                <th className="px-6 py-4 font-semibold text-center w-32">Contrato</th>
+                <th className="px-6 py-4 font-semibold">Cliente</th>
+                <th className="px-6 py-4 font-semibold">Valor Serviço</th>
+                <th className="px-6 py-4 font-semibold">Data</th>
+                <th className="px-6 py-4 font-semibold text-right">Ações</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100 dark:divide-zinc-800">
+              {loading ? (
+                <tr>
+                  <td colSpan={5} className="px-6 py-12 text-center text-gray-500">Carregando contratos...</td>
+                </tr>
+              ) : filteredContracts.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-6 py-12 text-center text-gray-500">Nenhum contrato encontrado.</td>
+                </tr>
+              ) : filteredContracts.map((contract: any) => (
+                <tr key={contract.id} className="hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-colors">
+                  <td className="px-6 py-4 font-medium text-blue-600 text-center">#{contract.id}</td>
+                  <td className="px-6 py-4 font-medium dark:text-white">{contract.client_name}</td>
+                  <td className="px-6 py-4 font-semibold text-green-600">R$ {contract.service_value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                  <td className="px-6 py-4 text-gray-500">{new Date(contract.contract_date).toLocaleDateString('pt-BR')}</td>
+                  <td className="px-6 py-4">
+                    <div className="flex justify-end gap-2">
+                      <button 
+                        onClick={() => handleOpenContract(contract, true)}
+                        className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all"
+                        title="Ver Contrato"
+                      >
+                        <Eye size={18} />
+                      </button>
+                      <button 
+                        onClick={() => handleOpenContract(contract, false)}
+                        className="p-2 text-gray-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg transition-all"
+                        title="Editar"
+                      >
+                        <Edit size={18} />
+                      </button>
+                      <button 
+                        onClick={() => handleDelete(contract.id)}
+                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
+                        title="Excluir"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <ContractOverlay
+        isOpen={isContractOpen}
+        onClose={() => setIsContractOpen(false)}
+        client={contractClient}
+        contract={selectedContract}
+        isViewOnly={isViewOnly}
+        onSuccess={() => {
+          setSuccessMessage('Contrato atualizado com sucesso!');
+          fetchContracts();
+        }}
       />
     </div>
   );
@@ -817,6 +988,7 @@ function App() {
         <Route element={<PrivateRoute />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/clients" element={<ClientList />} />
+          <Route path="/contracts" element={<ContractList />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" />} />

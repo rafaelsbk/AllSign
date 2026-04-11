@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, Client, ClientPhone
+from .models import User, Client, ClientPhone, Contract
 
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
@@ -87,3 +87,10 @@ class ClientSerializer(serializers.ModelSerializer):
                 ClientPhone.objects.create(client=instance, **phone_data)
         
         return instance
+
+class ContractSerializer(serializers.ModelSerializer):
+    client_name = serializers.CharField(source='client.name', read_only=True)
+
+    class Meta:
+        model = Contract
+        fields = '__all__'
