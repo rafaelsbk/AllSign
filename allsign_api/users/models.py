@@ -66,3 +66,41 @@ class ClientPhone(models.Model):
 
     def __str__(self):
         return f"{self.phone} (Client: {self.client.name})"
+
+class Contract(models.Model):
+    client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='contracts')
+    contract_number = models.CharField(max_length=50, default="XXX")
+
+    # Qualificação extra
+    nationality = models.CharField(max_length=100, default="Brasileiro (a)")
+    marital_status = models.CharField(max_length=50, default="SOLTEIRO (A)")
+
+    # Valores
+    service_value = models.FloatField()
+    service_value_extenso = models.CharField(max_length=255, blank=True)
+    equipment_value = models.FloatField()
+    equipment_value_extenso = models.CharField(max_length=255, blank=True)
+
+    # Detalhes técnicos
+    validity = models.CharField(max_length=50, default="12 (DOZE) MESES")
+    inverter_brand = models.CharField(max_length=255)
+    inverter_quantity = models.IntegerField()
+    inverter_k = models.CharField(max_length=50, default="XX")
+    inverter_warranty = models.CharField(max_length=50, default="10")
+
+    panels_brand = models.CharField(max_length=255)
+    panels_quantity = models.IntegerField()
+    panels_watts = models.CharField(max_length=50, default="XXX")
+    panels_warranty = models.CharField(max_length=50, default="25")
+
+    # Pagamento e Prazos
+    due_date = models.CharField(max_length=500) 
+    payment_method = models.CharField(max_length=500)
+    beneficiary_units = models.CharField(max_length=500)
+
+    contract_date = models.DateField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+    def __str__(self):
+        return f"Contrato {self.id} - {self.client.name} ({self.contract_date})"
