@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        @page {
+            size: a4;
+            margin: 2cm;
+            @frame footer {
+                -pdf-frame-content: footer_content;
+                bottom: 1cm;
+                margin-left: 2cm;
+                margin-right: 2cm;
+                height: 1cm;
+            }
+        }
+        body {
+            font-family: Helvetica, sans-serif;
+            font-size: 11pt;
+            line-height: 1.5;
+            text-align: justify;
+            color: #333;
+        }
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .font-bold { font-weight: bold; }
+        .uppercase { text-transform: uppercase; }
+        .underline { text-decoration: underline; }
+        .mb-2 { margin-bottom: 0.5rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        .mb-10 { margin-bottom: 2.5rem; }
+        .mt-4 { margin-top: 1rem; }
+        .mt-10 { margin-top: 2.5rem; }
+        .table { width: 100%; border-collapse: collapse; border: 1px solid #000; margin-bottom: 1rem; }
+        .table td, .table th { border: 1px solid #000; padding: 8px; vertical-align: top; }
+        .bg-gray { background-color: #f2f2f2; }
+        .page-break { page-break-after: always; }
+        .list-alpha { margin-left: 20px; }
+        .list-alpha p { margin-bottom: 5px; }
+    </style>
+</head>
+<body>
+
+    {% if doc_title %}
+    <div class="text-center mb-10">
+        <h1 class="font-bold uppercase" style="font-size: 14pt;">{{ doc_title }}</h1>
+        {% if doc_subtitle %}
+        <p class="font-bold mt-4 uppercase">{{ doc_subtitle }}</p>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% for section in sections %}
+        
+        {% if section.page_break_before %}
+            <div class="page-break"></div>
+        {% endif %}
+
+        <section class="{% if section.mb %}mb-10{% endif %}">
+            {% if section.title %}
+                <h2 class="font-bold mb-4 uppercase {% if section.underline %}underline{% endif %}">{{ section.title }}</h2>
+            {% endif %}
+
+            {% for block in section.blocks %}
+                
+                {% if block.type == 'text' %}
+                    <p class="{% if block.bold %}font-bold{% endif %} {% if block.mt %}mt-4{% endif %} {% if block.uppercase %}uppercase{% endif %}">
+                        {{ block.content|safe }}
+                    </p>
+                
+                {% elif block.type == 'text_highlight' %}
+                    <p class="mt-4"><strong>{{ block.content|safe }}</strong></p>
+
+                {% elif block.type == 'list_alpha' %}
+                    <div class="list-alpha mt-4">
+                        {% for item in block.items %}
+                            <p>{{ item|safe }}</p>
+                        {% endfor %}
+                    </div>
+                
+                {% elif block.type == 'structured_table' %}
+                    <table class="table mt-4">
+                        {% for row in block.rows %}
+                            <tr>
+                                <td class="font-bold uppercase bg-gray" width="50%">{{ row.label }}</td>
+                                <td class="{% if row.bold_value %}font-bold{% endif %} {% if row.uppercase_value %}uppercase{% endif %}">
+                                    {% if row.value_list %}
+                                        {% for val in row.value_list %}
+                                            <p>● {{ val|safe }}</p>
+                                        {% endfor %}
+                                    {% else %}
+                                        ● {{ row.value|safe }}
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </table>
+
+                {% elif block.type == 'signatures' %}
+                    <div class="mt-10">
+                        <p class="text-center mt-10 font-bold uppercase">{{ block.date_text }}</p>
+                        <table style="width: 100%; margin-top: 50px; border: none;">
+                            <tr>
+                                <td style="width: 45%; border: none; border-top: 1px solid #000; text-align: center;">
+                                    <p class="font-bold uppercase">{{ block.party_1_name }}</p>
+                                    <p>{{ block.party_1_doc }}</p>
+                                    <p class="font-bold">{{ block.party_1_role }}</p>
+                                </td>
+                                <td style="width: 10%; border: none;"></td>
+                                <td style="width: 45%; border: none; border-top: 1px solid #000; text-align: center;">
+                                    <p class="font-bold uppercase">{{ block.party_2_name }}</p>
+                                    <p>{{ block.party_2_doc }}</p>
+                                    <p class="font-bold">{{ block.party_2_role }}</p>
+                                </td>
+                            </tr>
+                        </table>
+                        {% if block.witnesses %}
+                        <table style="width: 100%; margin-top: 80px; border: none;">
+                            <tr>
+                                <td style="width: 45%; border: none; border-top: 1px solid #000; text-align: center;">
+                                    <p class="font-bold">TESTEMUNHA</p>
+                                </td>
+                                <td style="width: 10%; border: none;"></td>
+                                <td style="width: 45%; border: none; border-top: 1px solid #000; text-align: center;">
+                                    <p class="font-bold">TESTEMUNHA</p>
+                                </td>
+                            </tr>
+                        </table>
+                        {% endif %}
+                    </div>
+                {% endif %}
+
+            {% endfor %}
+        </section>
+    {% endfor %}
+
+    <!-- Paginação no Rodapé -->
+    <div id="footer_content" style="text-align: right; font-size: 9pt;">
+        Página <pdf:pagenumber> de <pdf:pagecount>
+    </div>
+
+</body>
+</html>

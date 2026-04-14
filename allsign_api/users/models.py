@@ -99,8 +99,21 @@ class Contract(models.Model):
     beneficiary_units = models.CharField(max_length=500)
 
     contract_date = models.DateField()
+    extra_data = models.JSONField(default=dict, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
 
     def __str__(self):
         return f"Contrato {self.id} - {self.client.name} ({self.contract_date})"
+
+class ContractTemplate(models.Model):
+    name = models.CharField(max_length=255)
+    category = models.CharField(max_length=100, blank=True)
+    description = models.TextField(blank=True)
+    content = models.JSONField() # Aqui salvaremos a estrutura de seções e campos
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name

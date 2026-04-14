@@ -25,6 +25,7 @@ const Sidebar: React.FC = () => {
     { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={20} /> },
     { name: 'Clientes', path: '/clients', icon: <Users size={20} /> },
     { name: 'Contratos', path: '/contracts', icon: <FileText size={20} /> },
+    { name: 'Modelos', path: '/templates', icon: <Menu size={20} /> },
   ];
 
   return (

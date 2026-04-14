@@ -2,7 +2,7 @@ from django.urls import path
 from .views import (
     RegisterView, ProfileView, ClientListCreateView, 
     ClientDetailView, ContractListCreateView, ContractDetailView,
-    GenerateContractPDFView
+    GenerateContractPDFView, ContractTemplateListView, ContractTemplateDetailView
 )
 
 urlpatterns = [
@@ -13,4 +13,6 @@ urlpatterns = [
     path('contracts/', ContractListCreateView.as_view(), name='contract-list-create'),
     path('contracts/<int:pk>/', ContractDetailView.as_view(), name='contract-detail'),
     path('contracts/generate-pdf/', GenerateContractPDFView.as_view(), name='contract-generate-pdf'),
+    path('templates/', ContractTemplateListView.as_view(), name='template-list'),
+    path('templates/<int:pk>/', ContractTemplateDetailView.as_view(), name='template-detail'),
 ]

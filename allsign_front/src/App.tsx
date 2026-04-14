@@ -4,9 +4,10 @@ import Sidebar from './components/sidebar/Sidebar';
 import Login from './components/login/Login';
 import Home from './components/home/Home';
 import api from './services/api';
-import { Search, Plus, Edit, Trash2, X, CheckCircle, Eye, FilePlus } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, X, CheckCircle, Eye, FilePlus, FileText } from 'lucide-react';
 import { jwtDecode } from 'jwt-decode';
 import ContractOverlay from './components/ContractOverlay';
+import ContractTemplateOverlay from './components/ContractTemplateOverlay';
 
 // Componente Toast de Sucesso
 const SuccessToast = ({ message, onClose }: { message: string, onClose: () => void }) => {
@@ -560,6 +561,7 @@ const ClientList = () => {
   const [editingClient, setEditingClient] = useState<any>(null);
   const [isViewOnly, setIsViewOnly] = useState(false);
   const [isContractOpen, setIsContractOpen] = useState(false);
+  const [isTemplateOpen, setIsTemplateOpen] = useState(false);
   const [contractClient, setContractClient] = useState<any>(null);
   const [successMessage, setSuccessMessage] = useState('');
   const userRole = getUserRole();
@@ -783,6 +785,10 @@ const ClientList = () => {
         onSuccess={handleFormSuccess}
         isViewOnly={isViewOnly}
         onOpenContract={handleOpenContract}
+        onOpenTemplate={() => {
+          setIsTemplateOpen(true);
+          setIsModalOpen(false);
+        }}
       />
 
       <ContractOverlay
@@ -790,6 +796,11 @@ const ClientList = () => {
         onClose={() => setIsContractOpen(false)}
         client={contractClient}
         onSuccess={() => setSuccessMessage('Contrato gerado com sucesso!')}
+      />
+
+      <ContractTemplateOverlay 
+        isOpen={isTemplateOpen}
+        onClose={() => setIsTemplateOpen(false)}
       />
     </div>
   );
@@ -806,6 +817,7 @@ const ContractList = () => {
   const [contractClient, setContractClient] = useState<any>(null);
   const [isViewOnly, setIsViewOnly] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [isTemplateOpen, setIsTemplateOpen] = useState(false);
 
   const fetchContracts = async (pageNum: number, isNewSearch: boolean = false) => {
     if (loading) return;
@@ -991,6 +1003,118 @@ const ContractList = () => {
           fetchContracts(1, true);
         }}
       />
+
+      {/* Botão Fixo de Novo Modelo de Contrato */}
+      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-30 md:left-[calc(50%+128px)]">
+        <button
+          onClick={() => setIsTemplateOpen(true)}
+          className="flex items-center space-x-2 bg-amber-600 hover:bg-amber-700 text-white px-8 py-4 rounded-full font-bold shadow-2xl shadow-amber-500/40 transition-all hover:-translate-y-1 active:scale-95 whitespace-nowrap"
+        >
+          <Plus size={24} />
+          <span>Novo Modelo</span>
+        </button>
+      </div>
+
+      <ContractTemplateOverlay 
+        isOpen={isTemplateOpen}
+        onClose={() => setIsTemplateOpen(false)}
+      />
+    </div>
+  );
+};
+
+const TemplateList = () => {
+  const [templates, setTemplates] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [isTemplateOpen, setIsTemplateOpen] = useState(false);
+
+  const fetchTemplates = async () => {
+    setLoading(true);
+    try {
+      const response = await api.get('/users/templates/');
+      // Ajuste para lidar com paginação ou lista simples
+      setTemplates(response.data.results || response.data);
+    } catch (err) {
+      console.error('Erro ao buscar templates:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTemplates();
+  }, []);
+
+  const handleDelete = async (id: number) => {
+    if (!window.confirm('Tem certeza que deseja excluir este modelo?')) return;
+    try {
+      await api.delete(`/users/templates/${id}/`);
+      setSuccessMessage('Modelo excluído com sucesso!');
+      fetchTemplates();
+    } catch (err) {
+      console.error('Erro ao excluir modelo:', err);
+      alert('Erro ao excluir modelo.');
+    }
+  };
+
+  return (
+    <div className="p-4 md:p-8 max-w-7xl mx-auto pb-32">
+      {successMessage && <SuccessToast message={successMessage} onClose={() => setSuccessMessage('')} />}
+      
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Modelos de Contrato</h1>
+          <p className="text-gray-500 dark:text-zinc-400 mt-1">Gerencie os modelos para novos contratos</p>
+        </div>
+        <button
+          onClick={() => setIsTemplateOpen(true)}
+          className="flex items-center space-x-2 bg-amber-600 hover:bg-amber-700 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg shadow-amber-500/20 transition-all hover:-translate-y-0.5"
+        >
+          <Plus size={20} />
+          <span>Novo Modelo</span>
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {templates.map((template: any) => (
+          <div key={template.id} className="bg-white dark:bg-zinc-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-zinc-700 hover:shadow-md transition-all">
+            <div className="flex justify-between items-start mb-4">
+              <div className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-xl text-amber-600">
+                <FileText size={24} />
+              </div>
+              <button 
+                onClick={() => handleDelete(template.id)}
+                className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+              >
+                <Trash2 size={18} />
+              </button>
+            </div>
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">{template.name}</h3>
+            <p className="text-sm text-gray-500 dark:text-zinc-400 mb-4">{template.category || 'Geral'}</p>
+            <div className="flex items-center text-xs text-gray-400">
+              <span>Criado em: {new Date(template.created_at || Date.now()).toLocaleDateString('pt-BR')}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {!loading && templates.length === 0 && (
+        <div className="py-20 text-center bg-gray-50 rounded-3xl dark:bg-zinc-800/50 border-2 border-dashed border-gray-200 dark:border-zinc-700">
+          <p className="text-gray-500 dark:text-gray-400">Nenhum modelo encontrado.</p>
+        </div>
+      )}
+
+      {loading && <div className="text-center py-20">Carregando modelos...</div>}
+
+      <ContractTemplateOverlay 
+        isOpen={isTemplateOpen}
+        onClose={() => setIsTemplateOpen(false)}
+        onSuccess={() => {
+          setSuccessMessage('Modelo criado com sucesso!');
+          fetchTemplates();
+        }}
+      />
     </div>
   );
 };
@@ -1019,6 +1143,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/clients" element={<ClientList />} />
           <Route path="/contracts" element={<ContractList />} />
+          <Route path="/templates" element={<TemplateList />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" />} />

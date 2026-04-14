@@ -94,3 +94,10 @@ class ContractSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contract
         fields = '__all__'
+
+from .models import ContractTemplate
+
+class ContractTemplateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ContractTemplate
+        fields = '__all__'

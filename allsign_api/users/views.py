@@ -1,8 +1,8 @@
 from rest_framework import generics, permissions, status, filters
 from rest_framework.response import Response
-from .models import User, Client, Contract
+from .models import User, Client, Contract, ContractTemplate
 from rest_framework_simplejwt.views import TokenObtainPairView
-from .serializers import MyTokenObtainPairSerializer, UserSerializer, ClientSerializer, ContractSerializer
+from .serializers import MyTokenObtainPairSerializer, UserSerializer, ClientSerializer, ContractSerializer, ContractTemplateSerializer
 from .permissions import IsAdminRole
 from django_filters.rest_framework import DjangoFilterBackend
 from .utils import render_to_pdf
@@ -15,13 +15,18 @@ class GenerateContractPDFView(APIView):
     def post(self, request, *args, **kwargs):
         try:
             data = request.data
-            pdf = render_to_pdf('users/contrato_pdf.html', data)
+            # Se o payload contiver 'sections', usamos o novo motor dinâmico
+            if 'sections' in data:
+                pdf = render_to_pdf('users/contrato_dinamico_pdf.html', data)
+            else:
+                # Fallback para o contrato antigo hardcoded (compatibilidade)
+                pdf = render_to_pdf('users/contrato_pdf.html', data)
+                
             if pdf:
                 response = HttpResponse(pdf.content, content_type='application/pdf')
                 filename = f"Contrato_{data.get('client_name', 'Documento').replace(' ', '_')}.pdf"
                 content = f"attachment; filename={filename}"
                 response['Content-Disposition'] = content
-                # Permitir que o frontend leia o cabeçalho Content-Disposition se necessário
                 response['Access-Control-Expose-Headers'] = 'Content-Disposition'
                 return response
             return HttpResponse("Erro ao gerar PDF", status=400)
@@ -92,4 +97,14 @@ class ContractListCreateView(generics.ListCreateAPIView):
 class ContractDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Contract.objects.all()
     serializer_class = ContractSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+
+class ContractTemplateListView(generics.ListCreateAPIView):
+    queryset = ContractTemplate.objects.filter(is_active=True).order_by('name')
+    serializer_class = ContractTemplateSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+
+class ContractTemplateDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = ContractTemplate.objects.all()
+    serializer_class = ContractTemplateSerializer
     permission_classes = (permissions.IsAuthenticated,)
