@@ -19,7 +19,7 @@ allsign_front/node_modules/
 allsign_front/dist/
 allsign_front/dist-ssr/
 *.local
-
+GEMINI.md/
 # IDEs
 .vscode/
 .idea/
@@ -32,3 +32,4 @@ Thumbs.db
 
 #teste contrato
 contrato.docx
+GEMINI.md
