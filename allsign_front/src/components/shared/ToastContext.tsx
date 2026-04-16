@@ -65,9 +65,10 @@ const Toast = ({ toast, onRemove }: { toast: ToastMessage; onRemove: (id: string
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, y: 50, scale: 0.9 }}
+      initial={{ opacity: 0, y: 12, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
+      exit={{ opacity: 0, scale: 0.98, transition: { duration: 0.1 } }}
+      transition={{ duration: 0.2, ease: "easeOut" }}
       className={`pointer-events-auto flex items-center space-x-4 ${bgColor} text-white px-6 py-4 rounded-xl shadow-xl ${shadowColor} border border-white/10 max-w-md w-full`}
     >
       <div className="bg-white/20 p-2 rounded-full shrink-0">

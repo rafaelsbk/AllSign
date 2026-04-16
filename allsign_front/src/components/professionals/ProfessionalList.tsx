@@ -20,7 +20,7 @@ const ProfessionalList = () => {
     setLoading(true);
     try {
       const response = await api.get('/users/professionals/', {
-        params: { search: searchTerm }
+        params: searchTerm ? { search: searchTerm } : {}
       });
       const data = Array.isArray(response.data) ? response.data : response.data.results;
       setProfessionals(data || []);

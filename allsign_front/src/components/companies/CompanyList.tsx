@@ -20,7 +20,7 @@ const CompanyList = () => {
     setLoading(true);
     try {
       const response = await api.get('/users/companies/', {
-        params: { search: searchTerm }
+        params: searchTerm ? { search: searchTerm } : {}
       });
       const data = Array.isArray(response.data) ? response.data : response.data.results;
       setCompanies(data || []);

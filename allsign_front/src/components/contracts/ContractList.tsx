@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Edit, Eye, Trash2, FileText } from 'lucide-react';
-import { motion } from 'framer-motion';
-import api from '../../services/api';
-import { Button } from '../ui/Button';
+import { Search, Edit, Trash2, Eye, Plus, Upload, Clock } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import api, { parseApiError } from '../../services/api';
 import { useToast } from '../shared/ToastContext';
+import { Button } from '../ui/Button';
 import ContractOverlay from '../ContractOverlay';
+import ContractTemplateOverlay from '../ContractTemplateOverlay';
 
 const ContractList = () => {
   const [contracts, setContracts] = useState<any[]>([]);
@@ -16,7 +17,8 @@ const ContractList = () => {
   const [selectedContract, setSelectedContract] = useState<any>(null);
   const [contractClient, setContractClient] = useState<any>(null);
   const [isViewOnly, setIsViewOnly] = useState(false);
-  
+  const [isTemplateOpen, setIsTemplateOpen] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const { showToast } = useToast();
 
   const fetchContracts = async (pageNum: number, isNewSearch: boolean = false) => {
@@ -24,14 +26,19 @@ const ContractList = () => {
     setLoading(true);
     try {
       const response = await api.get('/users/contracts/', {
-        params: { search: searchTerm, page: pageNum }
+        params: {
+          search: searchTerm,
+          page: pageNum
+        }
       });
+      
       const newContracts = response.data.results;
       if (isNewSearch) {
         setContracts(newContracts);
       } else {
         setContracts(prev => [...prev, ...newContracts]);
       }
+      
       setHasMore(!!response.data.next);
       setPage(pageNum);
     } catch (error) {
@@ -39,6 +46,27 @@ const ContractList = () => {
       showToast('Erro ao carregar contratos.', 'error');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    setIsUploading(true);
+    try {
+      await api.post('/users/templates/upload/', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      showToast('Modelo importado com sucesso!', 'success');
+    } catch (err: any) {
+      showToast(parseApiError(err, 'Erro ao importar modelo.'), 'error');
+    } finally {
+      setIsUploading(false);
+      e.target.value = '';
     }
   };
 
@@ -53,7 +81,11 @@ const ContractList = () => {
 
   useEffect(() => {
     const handleScroll = () => {
-      if (window.innerHeight + document.documentElement.scrollTop >= document.documentElement.offsetHeight - 100 && hasMore && !loading) {
+      if (
+        window.innerHeight + document.documentElement.scrollTop 
+        >= document.documentElement.offsetHeight - 100 &&
+        hasMore && !loading
+      ) {
         fetchContracts(page + 1);
       }
     };
@@ -65,10 +97,9 @@ const ContractList = () => {
     if (window.confirm('Tem certeza que deseja excluir este contrato?')) {
       try {
         await api.delete(`/users/contracts/${id}/`);
-        showToast('Contrato excluído com sucesso!', 'success');
+        showToast('Contrato excluído!', 'success');
         fetchContracts(1, true);
       } catch (error) {
-        console.error('Erro ao excluir contrato:', error);
         showToast('Erro ao excluir contrato.', 'error');
       }
     }
@@ -82,125 +113,135 @@ const ContractList = () => {
       setIsViewOnly(viewOnly);
       setIsContractOpen(true);
     } catch (error) {
-      console.error('Erro ao carregar dados do cliente:', error);
       showToast('Erro ao carregar dados do cliente.', 'error');
     }
   };
 
   return (
     <div className="p-8 pb-32 max-w-7xl mx-auto">
-      <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4"
+      >
         <div>
-          <h1 className="text-4xl font-black text-zinc-900 dark:text-white tracking-tighter">Contratos</h1>
-          <p className="text-zinc-500 dark:text-zinc-400 font-medium mt-1">Gerencie os contratos de prestação de serviço</p>
+          <h1 className="text-3xl font-black text-zinc-900 dark:text-white tracking-tighter">Meus Contratos</h1>
+          <p className="text-zinc-500 font-medium">Gerencie e visualize seus contratos assinados.</p>
         </div>
-      </div>
+      </motion.div>
 
-      <div className="mb-10">
-        <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3">
-          <div className="relative flex-1 group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-solar-orange transition-colors" size={20} />
-            <input 
-              type="text" 
-              placeholder="Buscar por nome do cliente ou número do contrato..." 
-              className="w-full pl-12 pr-4 h-14 rounded-2xl border border-zinc-200 bg-white focus:outline-none focus:ring-4 focus:ring-solar-orange/10 focus:border-solar-orange dark:bg-zinc-900 dark:border-zinc-800 dark:text-white transition-all font-medium" 
-              value={searchTerm} 
-              onChange={(e) => setSearchTerm(e.target.value)} 
+      <div className="mb-12">
+        <form onSubmit={handleSearch} className="flex gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" size={20} />
+            <input
+              type="text"
+              placeholder="Buscar por cliente..."
+              className="w-full pl-12 pr-6 py-4 rounded-2xl border border-zinc-200 bg-white dark:bg-zinc-900 dark:border-zinc-800 dark:text-white shadow-sm focus:ring-4 focus:ring-solar-blue/10 transition-all outline-none font-medium"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <Button type="submit" variant="solar" className="h-14 px-10 rounded-2xl shadow-solar shadow-lg font-bold text-base hover:scale-[1.02] active:scale-[0.98]">
-            Filtrar Contratos
+          <Button variant="solar" type="submit" size="lg" className="rounded-2xl px-10">
+            Filtrar
           </Button>
         </form>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {contracts.map((contract: any, index: number) => (
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }} 
-            animate={{ opacity: 1, y: 0 }} 
-            transition={{ delay: index * 0.05, duration: 0.4, ease: [0.23, 1, 0.32, 1] }} 
-            key={contract.id} 
-            className="group relative rounded-[2rem] bg-white dark:bg-zinc-900 p-6 shadow-sm hover:shadow-2xl hover:shadow-solar-orange/5 transition-all duration-500 border border-zinc-100 dark:border-zinc-800"
-          >
-            <div className="flex flex-col h-full">
-              <div className="mb-6">
-                <div className="flex justify-between items-start mb-4">
-                  <div className="w-12 h-12 rounded-2xl bg-zinc-50 dark:bg-zinc-800 flex items-center justify-center group-hover:bg-solar-blue/10 group-hover:text-solar-blue transition-colors duration-500">
-                    <FileText size={24} className="opacity-60" />
+      <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <AnimatePresence mode='popLayout'>
+          {contracts.map((contract: any) => (
+            <motion.div 
+              layout
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              key={contract.id} 
+              className="group relative rounded-[2rem] bg-white p-6 shadow-sm border border-zinc-100 hover:shadow-2xl transition-all dark:bg-zinc-900 dark:border-zinc-800 border-l-[6px] border-l-solar-blue"
+            >
+              <div className="flex flex-col h-full">
+                <div className="flex justify-between items-start mb-6">
+                  <div className="flex-1 min-w-0 mr-4">
+                    <h3 className="text-xl font-black text-zinc-900 dark:text-white truncate tracking-tight" title={contract.client_name}>
+                      {contract.client_name}
+                    </h3>
+                    <p className="text-xs font-bold text-solar-blue uppercase tracking-widest mt-1">
+                      Contrato #{contract.id}
+                    </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-lg font-black text-solar-green">
+                    <p className="text-lg font-black text-solar-green tracking-tighter">
                       R$ {contract.service_value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </p>
-                    <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-1">
+                    <p className="text-[10px] font-bold text-zinc-400 uppercase mt-1">
                       {new Date(contract.contract_date).toLocaleDateString('pt-BR')}
                     </p>
                   </div>
                 </div>
-                
-                <h3 className="text-lg font-black text-zinc-900 dark:text-white truncate leading-tight mb-1" title={contract.client_name}>
-                  {contract.client_name}
-                </h3>
-                <p className="text-xs font-bold text-solar-orange uppercase tracking-[0.2em]">
-                  Contrato #{contract.id}
-                </p>
-              </div>
-              
-              <div className="mt-auto flex items-center justify-end pt-4 border-t border-zinc-50 dark:border-zinc-800/50">
-                <div className="flex space-x-1">
-                  <button 
-                    onClick={() => handleOpenContract(contract, true)} 
-                    className="p-2.5 text-zinc-400 hover:text-solar-blue hover:bg-solar-blue/5 rounded-xl transition-all" 
-                    title="Visualizar"
-                  >
+
+                <div className="mt-auto flex items-center justify-end space-x-2 pt-6 border-t border-zinc-50 dark:border-zinc-800">
+                  <Button variant="ghost" size="icon" onPress={() => handleOpenContract(contract, true)} className="rounded-xl hover:bg-solar-blue/5 text-zinc-400 hover:text-solar-blue">
                     <Eye size={20} />
-                  </button>
-                  <button 
-                    onClick={() => handleOpenContract(contract, false)} 
-                    className="p-2.5 text-zinc-400 hover:text-solar-orange hover:bg-solar-orange/5 rounded-xl transition-all" 
-                    title="Editar"
-                  >
+                  </Button>
+                  <Button variant="ghost" size="icon" onPress={() => handleOpenContract(contract, false)} className="rounded-xl hover:bg-amber-50 text-zinc-400 hover:text-amber-600">
                     <Edit size={20} />
-                  </button>
-                  <button 
-                    onClick={() => handleDelete(contract.id)} 
-                    className="p-2.5 text-zinc-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all" 
-                    title="Excluir"
-                  >
+                  </Button>
+                  <Button variant="ghost" size="icon" onPress={() => handleDelete(contract.id)} className="rounded-xl hover:bg-red-50 text-zinc-400 hover:text-red-600">
                     <Trash2 size={20} />
-                  </button>
+                  </Button>
                 </div>
               </div>
-            </div>
-          </motion.div>
-        ))}
-      </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </motion.div>
 
       {!loading && contracts.length === 0 && (
-        <div className="py-24 text-center bg-white dark:bg-zinc-900 rounded-[3rem] border border-dashed border-zinc-200 dark:border-zinc-800">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-zinc-50 dark:bg-zinc-800 mb-6">
-            <FileText size={32} className="text-zinc-300" />
-          </div>
-          <p className="text-zinc-500 dark:text-zinc-400 font-bold text-lg">Nenhum contrato encontrado.</p>
-          <p className="text-zinc-400 text-sm mt-2">Nenhum registro corresponde aos filtros aplicados.</p>
+        <div className="py-32 text-center bg-zinc-50 rounded-[3rem] dark:bg-zinc-800/20 border-2 border-dashed border-zinc-100 dark:border-zinc-800">
+          <p className="text-zinc-400 font-bold uppercase tracking-widest">Nenhum contrato encontrado.</p>
         </div>
       )}
 
       {loading && (
-        <div className="flex flex-col items-center justify-center py-16 gap-4">
-          <div className="w-10 h-10 border-4 border-solar-orange border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-sm font-bold text-zinc-500 uppercase tracking-widest">Carregando...</p>
+        <div className="text-center py-12">
+          <div className="inline-block w-8 h-8 border-4 border-solar-blue/20 border-t-solar-blue rounded-full animate-spin" />
         </div>
       )}
-      
-      <ContractOverlay 
-        isOpen={isContractOpen} 
-        onClose={() => setIsContractOpen(false)} 
-        client={contractClient} 
-        contract={selectedContract} 
-        isViewOnly={isViewOnly} 
-        onSuccess={() => { showToast('Contrato atualizado com sucesso!', 'success'); fetchContracts(1, true); }} 
+
+      {/* Floating Action Buttons */}
+      <div className="fixed bottom-12 left-1/2 -translate-x-1/2 z-40 md:left-[calc(50%+128px)] flex flex-col items-center gap-4">
+        <label className={`flex items-center space-x-3 bg-solar-green hover:bg-green-700 text-white px-10 py-4 rounded-full font-black shadow-[0_20px_40px_rgba(76,175,80,0.3)] transition-all hover:-translate-y-1 active:scale-95 cursor-pointer ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}>
+          {isUploading ? <Clock size={20} className="animate-spin" /> : <Upload size={20} />}
+          <span className="text-sm uppercase tracking-wider">{isUploading ? 'Importando...' : 'Importar Modelo'}</span>
+          <input type="file" className="hidden" accept=".docx,.pdf" disabled={isUploading} onChange={handleFileUpload} />
+        </label>
+        
+        <Button
+          onPress={() => setIsTemplateOpen(true)}
+          variant="solar"
+          size="lg"
+          className="rounded-full px-12 py-5 shadow-[0_20px_40px_rgba(243,146,0,0.3)]"
+        >
+          <Plus size={24} className="mr-2" />
+          <span className="text-sm uppercase tracking-wider">Novo Modelo</span>
+        </Button>
+      </div>
+
+      <ContractOverlay
+        isOpen={isContractOpen}
+        onClose={() => setIsContractOpen(false)}
+        client={contractClient}
+        contract={selectedContract}
+        isViewOnly={isViewOnly}
+        onSuccess={() => {
+          showToast('Contrato atualizado!', 'success');
+          fetchContracts(1, true);
+        }}
+      />
+
+      <ContractTemplateOverlay 
+        isOpen={isTemplateOpen}
+        onClose={() => setIsTemplateOpen(false)}
       />
     </div>
   );

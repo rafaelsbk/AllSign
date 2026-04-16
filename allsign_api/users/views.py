@@ -1,9 +1,13 @@
 from rest_framework import generics, permissions, status, filters
 from rest_framework.response import Response
-from .models import User, Client, Contract, ContractTemplate
+from .models import User, Client, Contract, ContractTemplate, Company, Professional
 from rest_framework_simplejwt.views import TokenObtainPairView
-from .serializers import MyTokenObtainPairSerializer, UserSerializer, ClientSerializer, ContractSerializer, ContractTemplateSerializer
-from .permissions import IsAdminRole
+from .serializers import (
+    MyTokenObtainPairSerializer, UserSerializer, ClientSerializer, 
+    ContractSerializer, ContractTemplateSerializer,
+    CompanySerializer, ProfessionalSerializer
+)
+from .permissions import IsAdmin
 from django_filters.rest_framework import DjangoFilterBackend
 from .utils import render_to_pdf
 from django.http import HttpResponse
@@ -152,7 +156,7 @@ class ClientDetailView(generics.RetrieveUpdateDestroyAPIView):
     
     def get_permissions(self):
         if self.request.method == 'DELETE':
-            return [IsAdminRole()]
+            return [IsAdmin()]
         return [permissions.IsAuthenticated()]
 
 class ContractListCreateView(generics.ListCreateAPIView):
@@ -183,4 +187,28 @@ class ContractTemplateListView(generics.ListCreateAPIView):
 class ContractTemplateDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = ContractTemplate.objects.all()
     serializer_class = ContractTemplateSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+
+class CompanyListCreateView(generics.ListCreateAPIView):
+    queryset = Company.objects.all().order_by('trading_name')
+    serializer_class = CompanySerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['legal_name', 'trading_name', 'cnpj']
+
+class CompanyDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Company.objects.all()
+    serializer_class = CompanySerializer
+    permission_classes = (permissions.IsAuthenticated,)
+
+class ProfessionalListCreateView(generics.ListCreateAPIView):
+    queryset = Professional.objects.all().order_by('name')
+    serializer_class = ProfessionalSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['name', 'crea_number']
+
+class ProfessionalDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Professional.objects.all()
+    serializer_class = ProfessionalSerializer
     permission_classes = (permissions.IsAuthenticated,)
