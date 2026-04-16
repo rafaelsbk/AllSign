@@ -1,93 +1,90 @@
 from rest_framework import generics, permissions, status, filters
 from rest_framework.response import Response
-from .models import User, Client, Contract
+from .models import User, Client, Contract, Role, Company, Professional
 from rest_framework_simplejwt.views import TokenObtainPairView
-from .serializers import MyTokenObtainPairSerializer, UserSerializer, ClientSerializer, ContractSerializer
-from .permissions import IsAdminRole
-from django_filters.rest_framework import DjangoFilterBackend
-from .utils import render_to_pdf
-from django.http import HttpResponse
-from rest_framework.views import APIView
-
-class GenerateContractPDFView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
-
-    def post(self, request, *args, **kwargs):
-        try:
-            data = request.data
-            pdf = render_to_pdf('users/contrato_pdf.html', data)
-            if pdf:
-                response = HttpResponse(pdf.content, content_type='application/pdf')
-                filename = f"Contrato_{data.get('client_name', 'Documento').replace(' ', '_')}.pdf"
-                content = f"attachment; filename={filename}"
-                response['Content-Disposition'] = content
-                # Permitir que o frontend leia o cabeçalho Content-Disposition se necessário
-                response['Access-Control-Expose-Headers'] = 'Content-Disposition'
-                return response
-            return HttpResponse("Erro ao gerar PDF", status=400)
-        except Exception as e:
-            return HttpResponse(str(e), status=500)
+from .serializers import MyTokenObtainPairSerializer, ClientSerializer, ContractSerializer, EmployeeSerializer, RoleSerializer, CompanySerializer, ProfessionalSerializer
+from .permissions import IsAdmin
 
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
 
-class RegisterView(generics.CreateAPIView):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-    permission_classes = (permissions.AllowAny,)
+class RoleListCreateView(generics.ListCreateAPIView):
+    queryset = Role.objects.all()
+    serializer_class = RoleSerializer
+    permission_classes = (permissions.IsAuthenticated, IsAdmin,)
 
-class ProfileView(generics.RetrieveUpdateAPIView):
+class RoleDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Role.objects.all()
+    serializer_class = RoleSerializer
+    permission_classes = (permissions.IsAuthenticated, IsAdmin,)
+
+class EmployeeListCreateView(generics.ListCreateAPIView):
     queryset = User.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = EmployeeSerializer
+    permission_classes = (permissions.IsAuthenticated, IsAdmin,)
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['username', 'first_name', 'last_name', 'email']
+
+class EmployeeDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = User.objects.all()
+    serializer_class = EmployeeSerializer
+    permission_classes = (permissions.IsAuthenticated, IsAdmin,)
+
+class CompanyListCreateView(generics.ListCreateAPIView):
+    queryset = Company.objects.all()
+    serializer_class = CompanySerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['legal_name', 'trading_name', 'cnpj']
+
+class CompanyDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Company.objects.all()
+    serializer_class = CompanySerializer
     permission_classes = (permissions.IsAuthenticated,)
 
-    def get_object(self):
-        return self.request.user
+class ProfessionalListCreateView(generics.ListCreateAPIView):
+    queryset = Professional.objects.all()
+    serializer_class = ProfessionalSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['name', 'crea_number', 'email']
+
+class ProfessionalDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Professional.objects.all()
+    serializer_class = ProfessionalSerializer
+    permission_classes = (permissions.IsAuthenticated,)
 
 class ClientListCreateView(generics.ListCreateAPIView):
+    queryset = Client.objects.all() # Todos podem ver todos os clientes
     serializer_class = ClientSerializer
     permission_classes = (permissions.IsAuthenticated,)
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filter_backends = [filters.SearchFilter]
     search_fields = ['name', 'cpf']
-    ordering_fields = ['name']
-    ordering = ['name']
-
-    def get_queryset(self):
-        queryset = Client.objects.all().order_by('name')
-        
-        # Filtro: cadastrados por mim
-        only_mine = self.request.query_params.get('only_mine', 'false').lower() == 'true'
-        if only_mine:
-            queryset = queryset.filter(seller=self.request.user)
-        
-        return queryset
 
     def perform_create(self, serializer):
+        # O vendedor continua sendo a pessoa que cadastrou
         serializer.save(seller=self.request.user)
 
 class ClientDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Client.objects.all()
+    queryset = Client.objects.all() # Todos podem ver todos os clientes
     serializer_class = ClientSerializer
-    
-    def get_permissions(self):
-        if self.request.method == 'DELETE':
-            return [IsAdminRole()]
-        return [permissions.IsAuthenticated()]
+    permission_classes = (permissions.IsAuthenticated,)
 
 class ContractListCreateView(generics.ListCreateAPIView):
     serializer_class = ContractSerializer
     permission_classes = (permissions.IsAuthenticated,)
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ['client__name']
-    ordering_fields = ['created_at', 'contract_date']
-    ordering = ['-created_at']
 
     def get_queryset(self):
-        queryset = Contract.objects.all().order_by('-created_at')
         client_id = self.request.query_params.get('client_id')
-        if client_id:
-            queryset = queryset.filter(client_id=client_id)
-        return queryset
+        if not client_id:
+            return Contract.objects.none()
+        
+        # Como todos podem ver todos os clientes, a busca de contrato também não precisa de filtro por usuário
+        try:
+            client = Client.objects.get(id=client_id)
+            return Contract.objects.filter(client=client)
+        except Client.DoesNotExist:
+            return Contract.objects.none()
 
 class ContractDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Contract.objects.all()
