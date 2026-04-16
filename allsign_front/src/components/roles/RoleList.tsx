@@ -1,25 +1,29 @@
 import React, { useState, useEffect } from 'react';
+import { Plus, Edit, Trash2, Briefcase, Search } from 'lucide-react';
+import { motion } from 'framer-motion';
 import api from '../../services/api';
-import { Plus, Edit, Trash2 } from 'lucide-react';
-import RoleForm from './RoleForm'; // Componente do formulário que criaremos a seguir
-import SuccessToast from '../../components/shared/SuccessToast'; // Supondo um componente de toast
+import { Button } from '../ui/Button';
+import { useToast } from '../shared/ToastContext';
+import RoleForm from './RoleForm';
 
 const RoleList: React.FC = () => {
     const [roles, setRoles] = useState<any[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [editingRole, setEditingRole] = useState<any | null>(null);
-    const [successMessage, setSuccessMessage] = useState<string>('');
+    const [searchTerm, setSearchTerm] = useState('');
+
+    const { showToast } = useToast();
 
     const fetchRoles = async () => {
         setLoading(true);
         try {
             const response = await api.get('/users/roles/');
-            // Handle paginated response or direct array
             const data = Array.isArray(response.data) ? response.data : response.data.results;
             setRoles(data || []);
         } catch (error) {
             console.error("Erro ao buscar cargos:", error);
+            showToast('Erro ao carregar cargos.', 'error');
         } finally {
             setLoading(false);
         }
@@ -42,7 +46,7 @@ const RoleList: React.FC = () => {
     const handleSuccess = (message: string) => {
         fetchRoles();
         handleCloseModal();
-        setSuccessMessage(message);
+        showToast(message, 'success');
     };
 
     const handleDelete = async (id: number) => {
@@ -52,60 +56,109 @@ const RoleList: React.FC = () => {
                 handleSuccess('Cargo excluído com sucesso!');
             } catch (error) {
                 console.error("Erro ao excluir cargo:", error);
-                alert("Não foi possível excluir o cargo. Verifique se ele não está sendo utilizado por algum funcionário.");
+                showToast('Erro ao excluir cargo. Verifique se ele não está em uso.', 'error');
             }
         }
     };
 
+    const filteredRoles = roles.filter(role => 
+        role.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
     return (
-        <div className="p-8">
-            {successMessage && <SuccessToast message={successMessage} onClose={() => setSuccessMessage('')} />}
-            <div className="flex items-center justify-between mb-8">
-                <h1 className="text-2xl font-bold dark:text-white">Gerenciamento de Cargos</h1>
-                <button
-                    onClick={() => handleOpenModal()}
-                    className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors"
-                >
-                    <Plus size={20} />
-                    <span>Novo Cargo</span>
-                </button>
+        <div className="p-8 pb-32 max-w-7xl mx-auto">
+            <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
+                <div>
+                    <h1 className="text-4xl font-black text-zinc-900 dark:text-white tracking-tighter">Cargos</h1>
+                    <p className="text-zinc-500 dark:text-zinc-400 font-medium mt-1">Gerencie as funções e permissões da equipe</p>
+                </div>
+            </div>
+
+            <div className="mb-10">
+                <div className="relative group max-w-md">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-solar-orange transition-colors" size={20} />
+                    <input 
+                        type="text" 
+                        placeholder="Pesquisar cargos..." 
+                        className="w-full pl-12 pr-4 h-14 rounded-2xl border border-zinc-200 bg-white focus:outline-none focus:ring-4 focus:ring-solar-orange/10 focus:border-solar-orange dark:bg-zinc-900 dark:border-zinc-800 dark:text-white transition-all font-medium" 
+                        value={searchTerm} 
+                        onChange={(e) => setSearchTerm(e.target.value)} 
+                    />
+                </div>
             </div>
 
             {loading ? (
-                <p className="dark:text-gray-400">Carregando cargos...</p>
+                <div className="flex flex-col items-center justify-center py-16 gap-4">
+                    <div className="w-10 h-10 border-4 border-solar-orange border-t-transparent rounded-full animate-spin"></div>
+                    <p className="text-sm font-bold text-zinc-500 uppercase tracking-widest">Carregando...</p>
+                </div>
             ) : (
-                <div className="bg-white dark:bg-zinc-800 shadow-md rounded-lg overflow-hidden">
-                    <table className="min-w-full divide-y divide-gray-200 dark:divide-zinc-700">
-                        <thead className="bg-gray-50 dark:bg-zinc-700">
-                            <tr>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                    Nome do Cargo
-                                </th>
-                                <th scope="col" className="relative px-6 py-3">
-                                    <span className="sr-only">Ações</span>
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-200 dark:divide-zinc-700">
-                            {roles.map((role) => (
-                                <tr key={role.id}>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {filteredRoles.map((role, index) => (
+                        <motion.div 
+                            initial={{ opacity: 0, y: 20 }} 
+                            animate={{ opacity: 1, y: 0 }} 
+                            transition={{ delay: index * 0.05, duration: 0.4, ease: [0.23, 1, 0.32, 1] }} 
+                            key={role.id} 
+                            className="group relative rounded-[2.5rem] bg-white dark:bg-zinc-900 p-8 shadow-sm hover:shadow-2xl hover:shadow-solar-orange/5 transition-all duration-500 border border-zinc-100 dark:border-zinc-800"
+                        >
+                            <div className="flex flex-col h-full">
+                                <div className="mb-6">
+                                    <div className="w-14 h-14 rounded-2xl bg-zinc-50 dark:bg-zinc-800 flex items-center justify-center mb-6 group-hover:bg-solar-orange/10 group-hover:text-solar-orange transition-colors duration-500">
+                                        <Briefcase size={28} className="opacity-60" />
+                                    </div>
+                                    <h3 className="text-xl font-black text-zinc-900 dark:text-white truncate leading-tight mb-2" title={role.name}>
                                         {role.name}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                                        <button onClick={() => handleOpenModal(role)} className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300">
-                                            <Edit size={18} />
-                                        </button>
-                                        <button onClick={() => handleDelete(role.id)} className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">
-                                            <Trash2 size={18} />
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                                    </h3>
+                                    <div className="flex items-center text-zinc-400 text-sm font-bold uppercase tracking-widest">
+                                        <div className="w-2 h-2 rounded-full bg-solar-orange mr-2"></div>
+                                        ID: {role.id}
+                                    </div>
+                                </div>
+                                
+                                <div className="mt-auto flex items-center justify-end pt-6 border-t border-zinc-50 dark:border-zinc-800/50 space-x-2">
+                                    <button 
+                                        onClick={() => handleOpenModal(role)} 
+                                        className="p-3 text-zinc-400 hover:text-solar-orange hover:bg-solar-orange/5 rounded-xl transition-all" 
+                                        title="Editar"
+                                    >
+                                        <Edit size={20} />
+                                    </button>
+                                    <button 
+                                        onClick={() => handleDelete(role.id)} 
+                                        className="p-3 text-zinc-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all" 
+                                        title="Excluir"
+                                    >
+                                        <Trash2 size={20} />
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    ))}
                 </div>
             )}
+
+            {!loading && filteredRoles.length === 0 && (
+                <div className="py-24 text-center bg-white dark:bg-zinc-900 rounded-[3rem] border border-dashed border-zinc-200 dark:border-zinc-800">
+                    <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-zinc-50 dark:bg-zinc-800 mb-6">
+                        <Briefcase size={32} className="text-zinc-300" />
+                    </div>
+                    <p className="text-zinc-500 dark:text-zinc-400 font-bold text-lg">Nenhum cargo encontrado.</p>
+                </div>
+            )}
+
+            <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-30 md:left-[calc(50%+144px)]">
+                <Button 
+                    variant="solar" 
+                    size="lg" 
+                    onPress={() => handleOpenModal()} 
+                    className="rounded-[2rem] shadow-[0_20px_40px_rgba(243,146,0,0.3)] h-16 px-10 hover:scale-105 transition-all duration-300 group"
+                >
+                    <Plus size={24} className="mr-3 group-hover:rotate-90 transition-transform duration-300" /> 
+                    <span className="text-lg">Novo Cargo</span>
+                </Button>
+            </div>
+
             <RoleForm
                 isOpen={isModalOpen}
                 onClose={handleCloseModal}

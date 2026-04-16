@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
-import { X } from 'lucide-react';
+import { Button } from '../ui/Button';
+import { TextField } from '../ui/TextField';
+import { Modal } from '../ui/Modal';
+import { Select, SelectItem } from '../ui/Select';
 
 interface EmployeeFormProps {
     isOpen: boolean;
@@ -27,7 +30,6 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({ isOpen, onClose, onSuccess,
         const fetchRoles = async () => {
             try {
                 const response = await api.get('/users/roles/');
-                // Handle paginated response or direct array
                 const data = Array.isArray(response.data) ? response.data : response.data.results;
                 setRoles(data || []);
             } catch (error) {
@@ -44,7 +46,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({ isOpen, onClose, onSuccess,
                     email: employee.email || '',
                     username: employee.username || '',
                     password: '',
-                    role_id: employee.role_id || '',
+                    role_id: employee.role_id ? String(employee.role_id) : '',
                     is_active: employee.is_active,
                 });
             } else {
@@ -57,19 +59,6 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({ isOpen, onClose, onSuccess,
         }
     }, [employee, isOpen]);
 
-    if (!isOpen) return null;
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        const { name, value, type } = e.target;
-        const isCheckbox = type === 'checkbox';
-        // @ts-ignore
-        const checked = e.target.checked;
-        setFormData(prev => ({
-            ...prev,
-            [name]: isCheckbox ? checked : value,
-        }));
-    };
-
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
@@ -78,7 +67,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({ isOpen, onClose, onSuccess,
         const payload = { ...formData };
         if (employee && !payload.password) {
             // @ts-ignore
-            delete payload.password; // Não envia a senha se estiver vazia na edição
+            delete payload.password;
         }
 
         try {
@@ -89,9 +78,10 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({ isOpen, onClose, onSuccess,
                 await api.post('/users/employees/', payload);
                 onSuccess('Funcionário criado com sucesso!');
             }
+            onClose();
         } catch (err: any) {
             const apiError = err.response?.data;
-            const errorMsg = Object.keys(apiError).map(key => `${key}: ${apiError[key].join(', ')}`).join(' | ');
+            const errorMsg = apiError ? Object.keys(apiError).map(key => `${key}: ${apiError[key].join(', ')}`).join(' | ') : 'Erro ao salvar.';
             setError(errorMsg || 'Ocorreu um erro ao salvar o funcionário.');
         } finally {
             setLoading(false);
@@ -99,49 +89,53 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({ isOpen, onClose, onSuccess,
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-            <div className="w-full max-w-lg rounded-xl bg-white p-6 shadow-xl dark:bg-zinc-800 max-h-[90vh] overflow-y-auto">
-                <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-bold dark:text-white">
-                        {employee ? 'Editar Funcionário' : 'Novo Funcionário'}
-                    </h2>
-                    <button onClick={onClose} className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
-                        <X size={24} />
-                    </button>
+        <Modal 
+            isOpen={isOpen} 
+            onClose={onClose} 
+            title={employee ? 'Editar Funcionário' : 'Novo Funcionário'}
+            maxWidth="max-w-lg"
+        >
+            {error && <div className="mb-6 p-4 rounded-xl bg-red-50 text-red-700 border border-red-100 text-sm font-medium">{error}</div>}
+
+            <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <TextField label="Nome" isRequired value={formData.first_name} onChange={(val) => setFormData({...formData, first_name: val})} />
+                    <TextField label="Sobrenome" isRequired value={formData.last_name} onChange={(val) => setFormData({...formData, last_name: val})} />
+                </div>
+                
+                <TextField label="Email" type="email" isRequired value={formData.email} onChange={(val) => setFormData({...formData, email: val})} />
+                <TextField label="Nome de usuário" isRequired value={formData.username} onChange={(val) => setFormData({...formData, username: val})} />
+                <TextField 
+                    label="Senha" 
+                    type="password" 
+                    isRequired={!employee} 
+                    placeholder={employee ? "Nova Senha (deixe em branco para não alterar)" : "Senha"} 
+                    value={formData.password} 
+                    onChange={(val) => setFormData({...formData, password: val})} 
+                />
+                
+                <Select 
+                    label="Cargo" 
+                    items={roles} 
+                    selectedKey={formData.role_id}
+                    onSelectionChange={(key) => setFormData({...formData, role_id: String(key)})}
+                >
+                    {(item) => <SelectItem id={String(item.id)}>{item.name}</SelectItem>}
+                </Select>
+
+                <div className="flex items-center space-x-2">
+                   <input type="checkbox" id="is_active" checked={formData.is_active} onChange={(e) => setFormData({...formData, is_active: e.target.checked})} className="w-4 h-4 text-solar-orange rounded border-zinc-300 focus:ring-solar-gold" />
+                   <label htmlFor="is_active" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Funcionário Ativo</label>
                 </div>
 
-                {error && <div className="mb-4 p-3 rounded bg-red-100 text-red-700 font-medium border border-red-200">{error}</div>}
-
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <input name="first_name" value={formData.first_name} onChange={handleChange} placeholder="Nome" required className="mt-1 block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 dark:bg-zinc-900 dark:border-zinc-700 dark:text-white" />
-                        <input name="last_name" value={formData.last_name} onChange={handleChange} placeholder="Sobrenome" required className="mt-1 block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 dark:bg-zinc-900 dark:border-zinc-700 dark:text-white" />
-                    </div>
-                    <input name="email" type="email" value={formData.email} onChange={handleChange} placeholder="Email" required className="mt-1 block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 dark:bg-zinc-900 dark:border-zinc-700 dark:text-white" />
-                    <input name="username" value={formData.username} onChange={handleChange} placeholder="Nome de usuário" required className="mt-1 block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 dark:bg-zinc-900 dark:border-zinc-700 dark:text-white" />
-                    <input name="password" type="password" value={formData.password} onChange={handleChange} placeholder={employee ? "Nova Senha (deixe em branco para não alterar)" : "Senha"} required={!employee} className="mt-1 block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 dark:bg-zinc-900 dark:border-zinc-700 dark:text-white" />
-                    
-                    <select name="role_id" value={formData.role_id} onChange={handleChange} required className="mt-1 block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 dark:bg-zinc-900 dark:border-zinc-700 dark:text-white">
-                        <option value="">Selecione um cargo</option>
-                        {roles.map(role => (
-                            <option key={role.id} value={role.id}>{role.name}</option>
-                        ))}
-                    </select>
-
-                    <label className="flex items-center space-x-2 text-sm text-gray-700 dark:text-gray-300">
-                        <input type="checkbox" name="is_active" checked={formData.is_active} onChange={handleChange} className="rounded" />
-                        <span>Funcionário Ativo</span>
-                    </label>
-
-                    <div className="pt-4 flex justify-end space-x-3">
-                        <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 dark:border-zinc-700 dark:hover:bg-zinc-700 dark:text-white transition-colors">Cancelar</button>
-                        <button type="submit" disabled={loading} className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors disabled:opacity-50">
-                            {loading ? 'Salvando...' : 'Salvar'}
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
+                <div className="flex justify-end gap-3 pt-6 border-t border-zinc-100 dark:border-zinc-700">
+                    <Button variant="outline" onPress={onClose}>Cancelar</Button>
+                    <Button type="submit" variant="solar" isDisabled={loading}>
+                        {loading ? 'Salvando...' : 'Salvar'}
+                    </Button>
+                </div>
+            </form>
+        </Modal>
     );
 };
 

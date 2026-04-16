@@ -2,7 +2,10 @@ import React, { useState } from 'react';
 import './Login.css';
 import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
-import { Lock, User } from 'lucide-react';
+import { Sun } from 'lucide-react';
+import { Button } from '../ui/Button';
+import { TextField } from '../ui/TextField';
+import { motion } from 'framer-motion';
 
 const Login: React.FC = () => {
   const [username, setUsername] = useState('');
@@ -23,11 +26,11 @@ const Login: React.FC = () => {
     } catch (err: any) {
       console.error('Erro de login:', err);
       if (err.code === 'ERR_NETWORK') {
-        setError('Erro de conexão: O servidor não está respondendo. Verifique sua internet ou se o serviço está ativo.');
+        setError('Erro de conexão: O servidor não está respondendo.');
       } else if (err.response?.status === 401) {
         setError('Usuário ou senha inválidos.');
       } else {
-        setError(err.response?.data?.detail || 'Ocorreu um erro inesperado ao tentar entrar.');
+        setError(err.response?.data?.detail || 'Ocorreu um erro inesperado.');
       }
     } finally {
       setLoading(false);
@@ -35,61 +38,80 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen w-screen items-center justify-center bg-gray-50 px-4 py-8 dark:bg-zinc-900">
-      <div className="w-full max-w-sm overflow-hidden rounded-2xl bg-white p-8 shadow-xl border border-gray-100 dark:bg-zinc-800 dark:border-zinc-700">
-        <div className="mb-8 text-center">
-          <div className="inline-block bg-blue-700 px-6 py-2 rounded-md mb-4">
-             <h1 className="text-3xl font-extrabold tracking-tight text-white">AllSol</h1>
+    <div className="relative flex h-screen w-screen items-center justify-center bg-zinc-50 px-4 dark:bg-zinc-950 overflow-hidden">
+      {/* Decorative Sun Background */}
+      <div className="absolute -top-24 -right-24 w-96 h-96 bg-solar-gold/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-solar-orange/5 rounded-full blur-3xl pointer-events-none" />
+
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-sm z-10"
+      >
+        <div className="bg-white dark:bg-zinc-900 p-8 rounded-[2.5rem] shadow-2xl border border-zinc-100 dark:border-zinc-800">
+          <div className="mb-10 text-center">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-solar-orange rounded-2xl mb-6 shadow-solar rotate-3 group">
+               <Sun size={32} className="text-white animate-spin-slow group-hover:rotate-12 transition-transform" />
+            </div>
+            <h1 className="text-4xl font-black text-zinc-900 dark:text-white tracking-tighter">
+              All<span className="text-solar-orange">Sol</span>
+            </h1>
+            <p className="mt-3 text-zinc-500 dark:text-zinc-400 font-medium">Gestão Inteligente de Energia Solar</p>
           </div>
-          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">Entre na sua conta para continuar</p>
+
+          <form onSubmit={handleLogin} className="space-y-5">
+            <TextField 
+              label="Usuário" 
+              isRequired 
+              value={username} 
+              onChange={setUsername}
+              placeholder="Digite seu usuário"
+              className="group"
+            />
+
+            <TextField 
+              label="Senha" 
+              type="password" 
+              isRequired 
+              value={password} 
+              onChange={setPassword}
+              placeholder="Sua senha secreta"
+            />
+
+            {error && (
+              <motion.p 
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="text-xs font-bold text-red-500 bg-red-50 dark:bg-red-950/30 p-3 rounded-xl border border-red-100 dark:border-red-900/50"
+              >
+                {error}
+              </motion.p>
+            )}
+
+            <Button
+              type="submit"
+              variant="solar"
+              size="lg"
+              isDisabled={loading}
+              className="w-full h-14 rounded-2xl text-lg mt-4"
+            >
+              {loading ? (
+                <div className="flex items-center space-x-2">
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span>Entrando...</span>
+                </div>
+              ) : 'Acessar Sistema'}
+            </Button>
+          </form>
+          
+          <div className="mt-8 text-center">
+            <p className="text-xs text-zinc-400 font-medium uppercase tracking-widest">
+              © 2026 AllSol Energy
+            </p>
+          </div>
         </div>
-
-        <form onSubmit={handleLogin} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Usuário</label>
-            <div className="relative mt-1 flex items-center">
-              <span className="absolute left-3 text-gray-400">
-                <User size={18} />
-              </span>
-              <input
-                type="text"
-                required
-                className="block w-full rounded-lg border border-gray-300 bg-gray-50 py-3 pl-10 pr-3 text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white sm:text-sm transition-colors"
-                placeholder="Nome de usuário"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Senha</label>
-            <div className="relative mt-1 flex items-center">
-              <span className="absolute left-3 text-gray-400">
-                <Lock size={18} />
-              </span>
-              <input
-                type="password"
-                required
-                className="block w-full rounded-lg border border-gray-300 bg-gray-50 py-3 pl-10 pr-3 text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white sm:text-sm transition-colors"
-                placeholder="********"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-          </div>
-
-          {error && <p className="text-sm font-medium text-red-500 bg-red-50 p-2 rounded-md">{error}</p>}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="flex w-full items-center justify-center rounded-lg bg-blue-600 py-3 text-sm font-bold text-white shadow-sm hover:bg-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 active:scale-[0.98] transition-all disabled:opacity-50"
-          >
-            {loading ? 'Entrando...' : 'Entrar'}
-          </button>
-        </form>
-      </div>
+      </motion.div>
     </div>
   );
 };

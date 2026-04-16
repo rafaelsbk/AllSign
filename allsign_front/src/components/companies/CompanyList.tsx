@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { Search, Plus, Edit, Trash2, Eye, Building2 } from 'lucide-react';
+import { motion } from 'framer-motion';
 import api from '../../services/api';
-import { Search, Plus, Edit, Trash2, Eye } from 'lucide-react';
+import { Button } from '../ui/Button';
+import { useToast } from '../shared/ToastContext';
 import CompanyForm from './CompanyForm';
-import SuccessToast from '../shared/SuccessToast';
 
 const CompanyList = () => {
   const [companies, setCompanies] = useState<any[]>([]);
@@ -11,7 +13,8 @@ const CompanyList = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCompany, setEditingCompany] = useState<any>(null);
   const [isViewOnly, setIsViewOnly] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
+
+  const { showToast } = useToast();
 
   const fetchCompanies = async () => {
     setLoading(true);
@@ -23,6 +26,7 @@ const CompanyList = () => {
       setCompanies(data || []);
     } catch (err) {
       console.error('Erro ao buscar empresas', err);
+      showToast('Erro ao carregar empresas.', 'error');
     } finally {
       setLoading(false);
     }
@@ -54,9 +58,9 @@ const CompanyList = () => {
       try {
         await api.delete(`/users/companies/${id}/`);
         fetchCompanies();
-        setSuccessMessage('Empresa excluída com sucesso!');
+        showToast('Empresa excluída com sucesso!', 'success');
       } catch (err) {
-        alert('Erro ao excluir empresa.');
+        showToast('Erro ao excluir empresa.', 'error');
       }
     }
   };
@@ -69,52 +73,116 @@ const CompanyList = () => {
 
   const handleFormSuccess = () => {
     const message = editingCompany ? 'Empresa atualizada com sucesso!' : 'Empresa cadastrada com sucesso!';
-    setSuccessMessage(message);
+    showToast(message, 'success');
     fetchCompanies();
   };
 
   return (
-    <div className="p-8 pb-32">
-      {successMessage && <SuccessToast message={successMessage} onClose={() => setSuccessMessage('')} />}
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
-        <h1 className="text-2xl font-bold dark:text-white">Empresas</h1>
+    <div className="p-8 pb-32 max-w-7xl mx-auto">
+      <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
+        <div>
+          <h1 className="text-4xl font-black text-zinc-900 dark:text-white tracking-tighter">Empresas</h1>
+          <p className="text-zinc-500 dark:text-zinc-400 font-medium mt-1">Gerencie as empresas parceiras e fornecedores</p>
+        </div>
       </div>
 
-      <div className="mb-8">
-        <form onSubmit={handleSearch} className="flex gap-2">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-            <input type="text" placeholder="Pesquisar por Razão Social ou CNPJ..." className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-zinc-800 dark:border-zinc-700 dark:text-white" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+      <div className="mb-10">
+        <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1 group">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-solar-orange transition-colors" size={20} />
+            <input 
+              type="text" 
+              placeholder="Pesquisar por razão social ou CNPJ..." 
+              className="w-full pl-12 pr-4 h-14 rounded-2xl border border-zinc-200 bg-white focus:outline-none focus:ring-4 focus:ring-solar-orange/10 focus:border-solar-orange dark:bg-zinc-900 dark:border-zinc-800 dark:text-white transition-all font-medium" 
+              value={searchTerm} 
+              onChange={(e) => setSearchTerm(e.target.value)} 
+            />
           </div>
-          <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors">Filtrar</button>
+          <Button type="submit" variant="solar" className="h-14 px-10 rounded-2xl shadow-solar shadow-lg font-bold text-base hover:scale-[1.02] active:scale-[0.98]">
+            Filtrar Empresas
+          </Button>
         </form>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {companies.map((company: any) => (
-          <div key={company.id} className="group relative rounded-xl bg-white p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all dark:bg-zinc-800 dark:border-zinc-700 border-l-4 border-l-blue-500">
-            <div className="flex flex-col">
-              <div className="flex justify-between items-start mb-2">
-                <div className="flex-1 min-w-0 mr-2">
-                  <h3 className="text-base font-bold text-gray-900 dark:text-white truncate" title={company.trading_name}>{company.trading_name}</h3>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">CNPJ: <span className="font-medium text-gray-700 dark:text-gray-300">{company.cnpj}</span></p>
+      {loading ? (
+        <div className="flex flex-col items-center justify-center py-16 gap-4">
+          <div className="w-10 h-10 border-4 border-solar-orange border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-sm font-bold text-zinc-500 uppercase tracking-widest">Carregando...</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {companies.map((company: any, index: number) => (
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }} 
+              animate={{ opacity: 1, y: 0 }} 
+              transition={{ delay: index * 0.05, duration: 0.4, ease: [0.23, 1, 0.32, 1] }} 
+              key={company.id} 
+              className="group relative rounded-[2.5rem] bg-white dark:bg-zinc-900 p-8 shadow-sm hover:shadow-2xl hover:shadow-solar-orange/5 transition-all duration-500 border border-zinc-100 dark:border-zinc-800"
+            >
+              <div className="flex flex-col h-full">
+                <div className="mb-6">
+                  <div className="w-14 h-14 rounded-2xl bg-zinc-50 dark:bg-zinc-800 flex items-center justify-center mb-6 group-hover:bg-solar-orange/10 group-hover:text-solar-orange transition-colors duration-500">
+                    <Building2 size={28} className="opacity-60" />
+                  </div>
+                  <h3 className="text-xl font-black text-zinc-900 dark:text-white truncate leading-tight mb-2" title={company.trading_name}>
+                    {company.trading_name}
+                  </h3>
+                  <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">
+                    CNPJ: <span className="text-zinc-600 dark:text-zinc-400">{company.cnpj}</span>
+                  </p>
+                </div>
+                
+                <div className="mt-auto flex items-center justify-between pt-6 border-t border-zinc-50 dark:border-zinc-800/50">
+                  <div className="flex space-x-1">
+                    <button 
+                      onClick={() => handleView(company)} 
+                      className="p-3 text-zinc-400 hover:text-solar-blue hover:bg-solar-blue/5 rounded-xl transition-all" 
+                      title="Visualizar"
+                    >
+                      <Eye size={20} />
+                    </button>
+                    <button 
+                      onClick={() => handleEdit(company)} 
+                      className="p-3 text-zinc-400 hover:text-solar-orange hover:bg-solar-orange/5 rounded-xl transition-all" 
+                      title="Editar"
+                    >
+                      <Edit size={20} />
+                    </button>
+                  </div>
+                  
+                  <button 
+                    onClick={() => handleDelete(company.id)} 
+                    className="p-3 text-zinc-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all" 
+                    title="Excluir"
+                  >
+                    <Trash2 size={20} />
+                  </button>
                 </div>
               </div>
-              <div className="flex items-center justify-end space-x-1 mt-2 pt-2 border-t border-gray-50 dark:border-zinc-700">
-                <button onClick={() => handleView(company)} className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors dark:hover:bg-blue-900/20" title="Visualizar"><Eye size={16} /></button>
-                <button onClick={() => handleEdit(company)} className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors dark:hover:bg-blue-900/20" title="Editar"><Edit size={16} /></button>
-                <button onClick={() => handleDelete(company.id)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors dark:hover:bg-red-900/20" title="Excluir"><Trash2 size={16} /></button>
-              </div>
-            </div>
+            </motion.div>
+          ))}
+        </div>
+      )}
+
+      {!loading && companies.length === 0 && (
+        <div className="py-24 text-center bg-white dark:bg-zinc-900 rounded-[3rem] border border-dashed border-zinc-200 dark:border-zinc-800">
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-zinc-50 dark:bg-zinc-800 mb-6">
+            <Building2 size={32} className="text-zinc-300" />
           </div>
-        ))}
-      </div>
+          <p className="text-zinc-500 dark:text-zinc-400 font-bold text-lg">Nenhuma empresa encontrada.</p>
+        </div>
+      )}
 
-      {!loading && companies.length === 0 && (<div className="py-20 text-center bg-gray-50 rounded-2xl dark:bg-zinc-800/50"><p className="text-gray-500 dark:text-gray-400">Nenhuma empresa encontrada.</p></div>)}
-      {loading && (<div className="text-center py-8 text-gray-500">Carregando empresas...</div>)}
-
-      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-30 md:left-[calc(50%+128px)]">
-        <button onClick={openCreateModal} className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-full font-bold shadow-2xl shadow-blue-500/40 transition-all hover:-translate-y-1 active:scale-95 whitespace-nowrap"><Plus size={24} /><span>Nova Empresa</span></button>
+      <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-30 md:left-[calc(50%+144px)]">
+        <Button 
+          variant="solar" 
+          size="lg" 
+          onPress={openCreateModal} 
+          className="rounded-[2rem] shadow-[0_20px_40px_rgba(243,146,0,0.3)] h-16 px-10 hover:scale-105 transition-all duration-300 group"
+        >
+           <Plus size={24} className="mr-3 group-hover:rotate-90 transition-transform duration-300" /> 
+           <span className="text-lg">Nova Empresa</span>
+        </Button>
       </div>
 
       <CompanyForm isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} company={editingCompany} onSuccess={handleFormSuccess} isViewOnly={isViewOnly} />
