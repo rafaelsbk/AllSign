@@ -11,14 +11,18 @@
   },
   "dependencies": {
     "axios": "^1.14.0",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.38.0",
     "html2canvas": "^1.4.1",
     "jspdf": "^4.2.1",
     "jwt-decode": "^4.0.0",
     "lucide-react": "^1.7.0",
     "node": "^25.9.0",
     "react": "^19.2.4",
+    "react-aria-components": "^1.17.0",
     "react-dom": "^19.2.4",
-    "react-router-dom": "^7.14.0"
+    "react-router-dom": "^7.14.0",
+    "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
