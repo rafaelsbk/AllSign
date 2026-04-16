@@ -4,7 +4,7 @@ import Sidebar from './components/sidebar/Sidebar';
 import Login from './components/login/Login';
 import Home from './components/home/Home';
 import api from './services/api';
-import { Search, Plus, Edit, Trash2, X, CheckCircle, Eye, FilePlus, FileText } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, X, CheckCircle, Eye, FilePlus, FileText, Upload, Clock } from 'lucide-react';
 import { jwtDecode } from 'jwt-decode';
 import ContractOverlay from './components/ContractOverlay';
 import ContractTemplateOverlay from './components/ContractTemplateOverlay';
@@ -818,6 +818,7 @@ const ContractList = () => {
   const [isViewOnly, setIsViewOnly] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [isTemplateOpen, setIsTemplateOpen] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   const fetchContracts = async (pageNum: number, isNewSearch: boolean = false) => {
     if (loading) return;
@@ -843,6 +844,30 @@ const ContractList = () => {
       console.error('Erro ao buscar contratos:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    setIsUploading(true);
+    try {
+      await api.post('/users/templates/upload/', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      setSuccessMessage('Modelo importado com sucesso!');
+    } catch (err: any) {
+      console.error('Erro ao importar modelo:', err);
+      alert(parseApiError(err, 'Erro ao importar modelo do arquivo.'));
+    } finally {
+      setIsUploading(false);
+      e.target.value = '';
     }
   };
 
@@ -1004,11 +1029,32 @@ const ContractList = () => {
         }}
       />
 
-      {/* Botão Fixo de Novo Modelo de Contrato */}
-      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-30 md:left-[calc(50%+128px)]">
+      {/* Botões Fixos de Novo Modelo de Contrato */}
+      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-30 md:left-[calc(50%+128px)] flex flex-col gap-3 items-center">
+        <label className={`flex items-center space-x-2 bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3 rounded-full font-bold shadow-2xl shadow-emerald-500/40 transition-all hover:-translate-y-1 active:scale-95 whitespace-nowrap cursor-pointer ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}>
+          {isUploading ? (
+            <span className="flex items-center gap-2">
+              <Clock size={20} className="animate-spin" />
+              <span>Importando...</span>
+            </span>
+          ) : (
+            <>
+              <Upload size={20} />
+              <span>Novo por Arquivo</span>
+            </>
+          )}
+          <input 
+            type="file" 
+            className="hidden" 
+            accept=".docx,.pdf"
+            disabled={isUploading}
+            onChange={handleFileUpload}
+          />
+        </label>
+        
         <button
           onClick={() => setIsTemplateOpen(true)}
-          className="flex items-center space-x-2 bg-amber-600 hover:bg-amber-700 text-white px-8 py-4 rounded-full font-bold shadow-2xl shadow-amber-500/40 transition-all hover:-translate-y-1 active:scale-95 whitespace-nowrap"
+          className="flex items-center space-x-2 bg-amber-600 hover:bg-amber-700 text-white px-8 py-3 rounded-full font-bold shadow-2xl shadow-amber-500/40 transition-all hover:-translate-y-1 active:scale-95 whitespace-nowrap"
         >
           <Plus size={24} />
           <span>Novo Modelo</span>
@@ -1028,6 +1074,7 @@ const TemplateList = () => {
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [isTemplateOpen, setIsTemplateOpen] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   const fetchTemplates = async () => {
     setLoading(true);
@@ -1039,6 +1086,32 @@ const TemplateList = () => {
       console.error('Erro ao buscar templates:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    setIsUploading(true);
+    try {
+      await api.post('/users/templates/upload/', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      setSuccessMessage('Modelo importado com sucesso!');
+      fetchTemplates();
+    } catch (err: any) {
+      console.error('Erro ao importar modelo:', err);
+      alert(parseApiError(err, 'Erro ao importar modelo do arquivo.'));
+    } finally {
+      setIsUploading(false);
+      // Reset the input
+      e.target.value = '';
     }
   };
 
@@ -1067,13 +1140,36 @@ const TemplateList = () => {
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Modelos de Contrato</h1>
           <p className="text-gray-500 dark:text-zinc-400 mt-1">Gerencie os modelos para novos contratos</p>
         </div>
-        <button
-          onClick={() => setIsTemplateOpen(true)}
-          className="flex items-center space-x-2 bg-amber-600 hover:bg-amber-700 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg shadow-amber-500/20 transition-all hover:-translate-y-0.5"
-        >
-          <Plus size={20} />
-          <span>Novo Modelo</span>
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => setIsTemplateOpen(true)}
+            className="flex items-center space-x-2 bg-amber-600 hover:bg-amber-700 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg shadow-amber-500/20 transition-all hover:-translate-y-0.5"
+          >
+            <Plus size={20} />
+            <span>Novo Modelo</span>
+          </button>
+          
+          <label className={`flex items-center space-x-2 bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg shadow-emerald-500/20 transition-all hover:-translate-y-0.5 cursor-pointer ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}>
+            {isUploading ? (
+              <span className="flex items-center gap-2">
+                <Clock size={20} className="animate-spin" />
+                <span>Processando...</span>
+              </span>
+            ) : (
+              <>
+                <Upload size={20} />
+                <span>Novo por Arquivo</span>
+              </>
+            )}
+            <input 
+              type="file" 
+              className="hidden" 
+              accept=".docx,.pdf"
+              disabled={isUploading}
+              onChange={handleFileUpload}
+            />
+          </label>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
