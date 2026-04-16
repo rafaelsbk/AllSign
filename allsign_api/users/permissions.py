@@ -1,22 +1,17 @@
-from rest_framework import permissions
+from rest_framework.permissions import BasePermission
 
-class IsAdminRole(permissions.BasePermission):
+class IsAdmin(BasePermission):
     """
-    Permite acesso apenas para usuários com role ADMIN.
+    Permite acesso apenas a usuários com o cargo de Administrador.
     """
     def has_permission(self, request, view):
-        return bool(request.user and request.user.is_authenticated and request.user.role == 'ADMIN')
+        return request.user and request.user.is_authenticated and request.user.role and request.user.role.name == 'Administrador'
 
-class IsManagerRole(permissions.BasePermission):
+class IsAdminOrManager(BasePermission):
     """
-    Permite acesso para usuários com role MANAGER ou ADMIN.
+    Permite acesso a Administradores ou Gerentes (se essa role for usada).
     """
     def has_permission(self, request, view):
-        return bool(request.user and request.user.is_authenticated and request.user.role in ['MANAGER', 'ADMIN'])
-
-class IsUserRole(permissions.BasePermission):
-    """
-    Permite acesso para qualquer usuário autenticado (USER, MANAGER ou ADMIN).
-    """
-    def has_permission(self, request, view):
-        return bool(request.user and request.user.is_authenticated)
+        if not (request.user and request.user.is_authenticated and request.user.role):
+            return False
+        return request.user.role.name in ['Administrador', 'Manager'] # O nome 'Manager' é do sistema antigo, pode ser ajustado
