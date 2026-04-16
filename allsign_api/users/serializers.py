@@ -8,7 +8,10 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     def get_token(cls, user):
         token = super().get_token(user)
         # Add custom claims
-        token['role'] = user.role
+        if user.role:
+            token['role'] = user.role.name
+        else:
+            token['role'] = None
         return token
 
 class UserSerializer(serializers.ModelSerializer):
@@ -23,7 +26,7 @@ class UserSerializer(serializers.ModelSerializer):
             username=validated_data['username'],
             email=validated_data.get('email', ''),
             password=validated_data['password'],
-            role=validated_data.get('role', User.Role.USER)
+            role=validated_data.get('role')
         )
         return user
 
@@ -95,7 +98,67 @@ class ContractSerializer(serializers.ModelSerializer):
         model = Contract
         fields = '__all__'
 
-from .models import ContractTemplate
+from .models import ContractTemplate, Company, CompanyPhone, Professional, ProfessionalPhone
+
+class CompanyPhoneSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CompanyPhone
+        fields = ('id', 'phone')
+
+class CompanySerializer(serializers.ModelSerializer):
+    phones = CompanyPhoneSerializer(many=True, required=False)
+
+    class Meta:
+        model = Company
+        fields = '__all__'
+
+    def create(self, validated_data):
+        phones_data = validated_data.pop('phones', [])
+        company = Company.objects.create(**validated_data)
+        for phone_data in phones_data:
+            CompanyPhone.objects.create(company=company, **phone_data)
+        return company
+
+    def update(self, instance, validated_data):
+        phones_data = validated_data.pop('phones', [])
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        if phones_data is not None:
+            instance.phones.all().delete()
+            for phone_data in phones_data:
+                CompanyPhone.objects.create(company=instance, **phone_data)
+        return instance
+
+class ProfessionalPhoneSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProfessionalPhone
+        fields = ('id', 'phone')
+
+class ProfessionalSerializer(serializers.ModelSerializer):
+    phones = ProfessionalPhoneSerializer(many=True, required=False)
+
+    class Meta:
+        model = Professional
+        fields = '__all__'
+
+    def create(self, validated_data):
+        phones_data = validated_data.pop('phones', [])
+        professional = Professional.objects.create(**validated_data)
+        for phone_data in phones_data:
+            ProfessionalPhone.objects.create(professional=professional, **phone_data)
+        return professional
+
+    def update(self, instance, validated_data):
+        phones_data = validated_data.pop('phones', [])
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        if phones_data is not None:
+            instance.phones.all().delete()
+            for phone_data in phones_data:
+                ProfessionalPhone.objects.create(professional=instance, **phone_data)
+        return instance
 
 class ContractTemplateSerializer(serializers.ModelSerializer):
     class Meta:

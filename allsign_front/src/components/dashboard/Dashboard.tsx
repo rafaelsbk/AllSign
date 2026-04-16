@@ -9,19 +9,19 @@ const Dashboard: React.FC = () => {
     show: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.1
+        staggerChildren: 0.05
       }
     }
   };
 
   const item: Variants = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { opacity: 0, y: 10 },
     show: { 
       opacity: 1, 
       y: 0, 
       transition: { 
-        type: 'spring', 
-        stiffness: 100 
+        duration: 0.2,
+        ease: "easeOut"
       } 
     }
   };

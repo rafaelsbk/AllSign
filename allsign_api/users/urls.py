@@ -3,7 +3,8 @@ from .views import (
     RegisterView, ProfileView, ClientListCreateView, 
     ClientDetailView, ContractListCreateView, ContractDetailView,
     GenerateContractPDFView, ContractTemplateListView, ContractTemplateDetailView,
-    ContractTemplateUploadView
+    ContractTemplateUploadView, CompanyListCreateView, CompanyDetailView,
+    ProfessionalListCreateView, ProfessionalDetailView
 )
 
 urlpatterns = [
@@ -17,4 +18,8 @@ urlpatterns = [
     path('templates/', ContractTemplateListView.as_view(), name='template-list'),
     path('templates/upload/', ContractTemplateUploadView.as_view(), name='template-upload'),
     path('templates/<int:pk>/', ContractTemplateDetailView.as_view(), name='template-detail'),
+    path('companies/', CompanyListCreateView.as_view(), name='company-list-create'),
+    path('companies/<int:pk>/', CompanyDetailView.as_view(), name='company-detail'),
+    path('professionals/', ProfessionalListCreateView.as_view(), name='professional-list-create'),
+    path('professionals/<int:pk>/', ProfessionalDetailView.as_view(), name='professional-detail'),
 ]

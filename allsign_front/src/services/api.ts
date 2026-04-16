@@ -38,4 +38,35 @@ api.interceptors.response.use(
   }
 );
 
+export const parseApiError = (err: any, defaultMsg: string = 'Ocorreu um erro.') => {
+  if (err.code === 'ERR_NETWORK') {
+    return 'Erro de conexão: O servidor não está respondendo.';
+  }
+
+  if (err.response?.data) {
+    const errorData = err.response.data;
+    if (typeof errorData === 'string') return errorData;
+    if (errorData.detail) return errorData.detail;
+    
+    const fieldNames: {[key: string]: string} = {
+      cpf: 'CPF', rg: 'RG', email: 'E-mail', name: 'Nome',
+      birth_date: 'Data de Nascimento', cep: 'CEP', phone: 'Telefone',
+      phones: 'Telefones', username: 'Usuário', password: 'Senha',
+      file: 'Arquivo'
+    };
+
+    if (typeof errorData === 'object') {
+      return Object.entries(errorData)
+        .map(([field, msgs]: any) => {
+          const label = fieldNames[field] || field;
+          const message = Array.isArray(msgs) ? msgs.join(', ') : msgs;
+          return `${label}: ${message}`;
+        })
+        .join(' | ');
+    }
+  }
+
+  return defaultMsg;
+};
+
 export default api;

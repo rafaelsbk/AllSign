@@ -41,8 +41,8 @@ const Modal = ({
           isDismissable
           className={({ isEntering, isExiting }) => cn(
             'fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm',
-            isEntering && 'animate-in fade-in duration-300',
-            isExiting && 'animate-out fade-out duration-200'
+            isEntering && 'animate-in fade-in duration-150',
+            isExiting && 'animate-out fade-out duration-100'
           )}
         >
           <AriaModal
@@ -50,8 +50,8 @@ const Modal = ({
             className={({ isEntering, isExiting }) => cn(
               'w-full bg-white dark:bg-zinc-800 rounded-lg shadow-crisp-lg overflow-hidden focus:outline-none border border-zinc-200 dark:border-zinc-700',
               maxWidth,
-              isEntering && 'animate-in zoom-in-95 duration-300',
-              isExiting && 'animate-out zoom-out-95 duration-200'
+              isEntering && 'animate-in zoom-in-98 duration-150',
+              isExiting && 'animate-out zoom-out-98 duration-100'
             )}
           >
             <Dialog className="relative outline-none">
