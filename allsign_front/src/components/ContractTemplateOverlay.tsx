@@ -114,7 +114,7 @@ const ContractTemplateOverlay: React.FC<ContractTemplateOverlayProps> = ({ isOpe
   };
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
+    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 md:pl-72 overflow-y-auto">
       <div className="bg-white dark:bg-zinc-900 w-full max-w-6xl rounded-2xl shadow-2xl flex flex-col h-full max-h-[95vh]">
         
         {/* Header Profissional */}

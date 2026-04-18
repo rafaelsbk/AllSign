@@ -214,7 +214,7 @@ const ContractOverlay: React.FC<ContractOverlayProps> = ({ isOpen, onClose, clie
   if (!isOpen || !client) return null;
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-md p-0 md:p-6 overflow-y-auto">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-md p-0 md:p-6 md:pl-72 overflow-y-auto">
       <div className="bg-white dark:bg-zinc-900 w-full max-w-[95vw] h-full max-h-[95vh] rounded-3xl shadow-2xl flex flex-col overflow-hidden border border-white/10">
         
         {/* Header Dinâmico */}
