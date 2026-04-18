@@ -50,89 +50,88 @@
     </div>
     {% endif %}
 
-    {% for section in sections %}
-        
-        {% if section.page_break_before %}
-            <div class="page-break"></div>
-        {% endif %}
-
-        <section class="{% if section.mb %}mb-10{% endif %}">
-            {% if section.title %}
-                <h2 class="font-bold mb-4 uppercase {% if section.underline %}underline{% endif %}">{{ section.title }}</h2>
+    {% if html_content %}
+        <div class="contract-body">
+            {{ html_content|safe }}
+        </div>
+    {% else %}
+        {% for section in sections %}
+            {% if section.page_break_before %}
+                <div class="page-break"></div>
             {% endif %}
 
-            {% for block in section.blocks %}
-                
-                {% if block.type == 'text' %}
-                    <p class="{% if block.bold %}font-bold{% endif %} {% if block.mt %}mt-4{% endif %} {% if block.uppercase %}uppercase{% endif %}">
-                        {{ block.content|safe }}
-                    </p>
-                
-                {% elif block.type == 'text_highlight' %}
-                    <p class="mt-4"><strong>{{ block.content|safe }}</strong></p>
-
-                {% elif block.type == 'list_alpha' %}
-                    <div class="list-alpha mt-4">
-                        {% for item in block.items %}
-                            <p>{{ item|safe }}</p>
-                        {% endfor %}
-                    </div>
-                
-                {% elif block.type == 'structured_table' %}
-                    <table class="table mt-4">
-                        {% for row in block.rows %}
-                            <tr>
-                                <td class="font-bold uppercase bg-gray" width="50%">{{ row.label }}</td>
-                                <td class="{% if row.bold_value %}font-bold{% endif %} {% if row.uppercase_value %}uppercase{% endif %}">
-                                    {% if row.value_list %}
-                                        {% for val in row.value_list %}
-                                            <p>● {{ val|safe }}</p>
-                                        {% endfor %}
-                                    {% else %}
-                                        ● {{ row.value|safe }}
-                                    {% endif %}
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </table>
-
-                {% elif block.type == 'signatures' %}
-                    <div class="mt-10">
-                        <p class="text-center mt-10 font-bold uppercase">{{ block.date_text }}</p>
-                        <table style="width: 100%; margin-top: 50px; border: none;">
-                            <tr>
-                                <td style="width: 45%; border: none; border-top: 1px solid #000; text-align: center;">
-                                    <p class="font-bold uppercase">{{ block.party_1_name }}</p>
-                                    <p>{{ block.party_1_doc }}</p>
-                                    <p class="font-bold">{{ block.party_1_role }}</p>
-                                </td>
-                                <td style="width: 10%; border: none;"></td>
-                                <td style="width: 45%; border: none; border-top: 1px solid #000; text-align: center;">
-                                    <p class="font-bold uppercase">{{ block.party_2_name }}</p>
-                                    <p>{{ block.party_2_doc }}</p>
-                                    <p class="font-bold">{{ block.party_2_role }}</p>
-                                </td>
-                            </tr>
-                        </table>
-                        {% if block.witnesses %}
-                        <table style="width: 100%; margin-top: 80px; border: none;">
-                            <tr>
-                                <td style="width: 45%; border: none; border-top: 1px solid #000; text-align: center;">
-                                    <p class="font-bold">TESTEMUNHA</p>
-                                </td>
-                                <td style="width: 10%; border: none;"></td>
-                                <td style="width: 45%; border: none; border-top: 1px solid #000; text-align: center;">
-                                    <p class="font-bold">TESTEMUNHA</p>
-                                </td>
-                            </tr>
-                        </table>
-                        {% endif %}
-                    </div>
+            <section class="{% if section.mb %}mb-10{% endif %}">
+                {% if section.title %}
+                    <h2 class="font-bold mb-4 uppercase {% if section.underline %}underline{% endif %}">{{ section.title }}</h2>
                 {% endif %}
 
-            {% endfor %}
-        </section>
-    {% endfor %}
+                {% for block in section.blocks %}
+                    {% if block.type == 'text' %}
+                        <p class="{% if block.bold %}font-bold{% endif %} {% if block.mt %}mt-4{% endif %} {% if block.uppercase %}uppercase{% endif %}">
+                            {{ block.content|safe }}
+                        </p>
+                    {% elif block.type == 'text_highlight' %}
+                        <p class="mt-4"><strong>{{ block.content|safe }}</strong></p>
+                    {% elif block.type == 'list_alpha' %}
+                        <div class="list-alpha mt-4">
+                            {% for item in block.items %}
+                                <p>{{ item|safe }}</p>
+                            {% endfor %}
+                        </div>
+                    {% elif block.type == 'structured_table' %}
+                        <table class="table mt-4">
+                            {% for row in block.rows %}
+                                <tr>
+                                    <td class="font-bold uppercase bg-gray" width="50%">{{ row.label }}</td>
+                                    <td class="{% if row.bold_value %}font-bold{% endif %} {% if row.uppercase_value %}uppercase{% endif %}">
+                                        {% if row.value_list %}
+                                            {% for val in row.value_list %}
+                                                <p>● {{ val|safe }}</p>
+                                            {% endfor %}
+                                        {% else %}
+                                            ● {{ row.value|safe }}
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </table>
+                    {% elif block.type == 'signatures' %}
+                        <div class="mt-10">
+                            <p class="text-center mt-10 font-bold uppercase">{{ block.date_text }}</p>
+                            <table style="width: 100%; margin-top: 50px; border: none;">
+                                <tr>
+                                    <td style="width: 45%; border: none; border-top: 1px solid #000; text-align: center;">
+                                        <p class="font-bold uppercase">{{ block.party_1_name }}</p>
+                                        <p>{{ block.party_1_doc }}</p>
+                                        <p class="font-bold">{{ block.party_1_role }}</p>
+                                    </td>
+                                    <td style="width: 10%; border: none;"></td>
+                                    <td style="width: 45%; border: none; border-top: 1px solid #000; text-align: center;">
+                                        <p class="font-bold uppercase">{{ block.party_2_name }}</p>
+                                        <p>{{ block.party_2_doc }}</p>
+                                        <p class="font-bold">{{ block.party_2_role }}</p>
+                                    </td>
+                                </tr>
+                            </table>
+                            {% if block.witnesses %}
+                            <table style="width: 100%; margin-top: 80px; border: none;">
+                                <tr>
+                                    <td style="width: 45%; border: none; border-top: 1px solid #000; text-align: center;">
+                                        <p class="font-bold">TESTEMUNHA</p>
+                                    </td>
+                                    <td style="width: 10%; border: none;"></td>
+                                    <td style="width: 45%; border: none; border-top: 1px solid #000; text-align: center;">
+                                        <p class="font-bold">TESTEMUNHA</p>
+                                    </td>
+                                </tr>
+                            </table>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </section>
+        {% endfor %}
+    {% endif %}
 
     <!-- Paginação no Rodapé -->
     <div id="footer_content" style="text-align: right; font-size: 9pt;">
