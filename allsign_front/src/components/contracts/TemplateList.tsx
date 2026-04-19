@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, FileText, Upload, Clock } from 'lucide-react';
+import { Plus, Trash2, Edit, FileText, Upload, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api, { parseApiError } from '../../services/api';
 import { useToast } from '../shared/ToastContext';
@@ -10,6 +10,7 @@ const TemplateList = () => {
   const [templates, setTemplates] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [isTemplateOpen, setIsTemplateOpen] = useState(false);
+  const [editingTemplate, setEditingTemplate] = useState<any>(null);
   const [isUploading, setIsUploading] = useState(false);
   const { showToast } = useToast();
 
@@ -26,6 +27,11 @@ const TemplateList = () => {
     }
   };
 
+  const handleEdit = (template: any) => {
+    setEditingTemplate(template);
+    setIsTemplateOpen(true);
+  };
+
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -35,11 +41,15 @@ const TemplateList = () => {
 
     setIsUploading(true);
     try {
-      await api.post('/users/templates/upload/', formData, {
+      const response = await api.post('/users/templates/upload/', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       showToast('Modelo importado!', 'success');
       fetchTemplates();
+      // Abre automaticamente para edição após importar
+      if (response.data) {
+        handleEdit(response.data);
+      }
     } catch (err: any) {
       showToast(parseApiError(err, 'Erro ao importar modelo.'), 'error');
     } finally {
@@ -63,6 +73,11 @@ const TemplateList = () => {
     }
   };
 
+  const handleNewTemplate = () => {
+    setEditingTemplate(null);
+    setIsTemplateOpen(true);
+  };
+
   return (
     <div className="p-8 pb-32 max-w-7xl mx-auto">
       <motion.div 
@@ -75,7 +90,7 @@ const TemplateList = () => {
           <p className="text-zinc-500 font-medium">Crie e gerencie as estruturas dos seus contratos.</p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <Button variant="solar" onPress={() => setIsTemplateOpen(true)} className="rounded-xl px-6">
+          <Button variant="solar" onPress={handleNewTemplate} className="rounded-xl px-6">
             <Plus size={20} className="mr-2" />
             Novo Modelo
           </Button>
@@ -103,9 +118,14 @@ const TemplateList = () => {
                 <div className="p-4 bg-solar-gold/10 dark:bg-solar-gold/5 rounded-2xl text-solar-gold group-hover:scale-110 transition-transform duration-500">
                   <FileText size={32} />
                 </div>
-                <Button variant="ghost" size="icon" onPress={() => handleDelete(template.id)} className="rounded-xl text-zinc-400 hover:text-red-600 hover:bg-red-50">
-                  <Trash2 size={20} />
-                </Button>
+                <div className="flex items-center space-x-2">
+                  <Button variant="ghost" size="icon" onPress={() => handleEdit(template)} className="rounded-xl text-zinc-400 hover:text-solar-blue hover:bg-blue-50">
+                    <Edit size={20} />
+                  </Button>
+                  <Button variant="ghost" size="icon" onPress={() => handleDelete(template.id)} className="rounded-xl text-zinc-400 hover:text-red-600 hover:bg-red-50">
+                    <Trash2 size={20} />
+                  </Button>
+                </div>
               </div>
               <h3 className="text-xl font-black text-zinc-900 dark:text-white mb-2 tracking-tight">{template.name}</h3>
               <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-6">{template.category || 'Geral'}</p>
@@ -132,8 +152,9 @@ const TemplateList = () => {
       <ContractTemplateOverlay 
         isOpen={isTemplateOpen}
         onClose={() => setIsTemplateOpen(false)}
+        initialData={editingTemplate}
         onSuccess={() => {
-          showToast('Modelo criado!', 'success');
+          showToast(editingTemplate ? 'Modelo atualizado!' : 'Modelo criado!', 'success');
           fetchTemplates();
         }}
       />

@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Edit, Trash2, Eye, Plus, Upload, Clock } from 'lucide-react';
+import { Search, Edit, Trash2, Eye, Plus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import api, { parseApiError } from '../../services/api';
+import api from '../../services/api';
 import { useToast } from '../shared/ToastContext';
 import { Button } from '../ui/Button';
 import ContractOverlay from '../ContractOverlay';
-import ContractTemplateOverlay from '../ContractTemplateOverlay';
+import ClientSelectionModal from './ClientSelectionModal';
 
 const ContractList = () => {
   const [contracts, setContracts] = useState<any[]>([]);
@@ -14,11 +14,10 @@ const ContractList = () => {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [isContractOpen, setIsContractOpen] = useState(false);
+  const [isClientSelectionOpen, setIsClientSelectionOpen] = useState(false);
   const [selectedContract, setSelectedContract] = useState<any>(null);
   const [contractClient, setContractClient] = useState<any>(null);
   const [isViewOnly, setIsViewOnly] = useState(false);
-  const [isTemplateOpen, setIsTemplateOpen] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
   const { showToast } = useToast();
 
   const fetchContracts = async (pageNum: number, isNewSearch: boolean = false) => {
@@ -46,27 +45,6 @@ const ContractList = () => {
       showToast('Erro ao carregar contratos.', 'error');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const formData = new FormData();
-    formData.append('file', file);
-
-    setIsUploading(true);
-    try {
-      await api.post('/users/templates/upload/', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      showToast('Modelo importado com sucesso!', 'success');
-    } catch (err: any) {
-      showToast(parseApiError(err, 'Erro ao importar modelo.'), 'error');
-    } finally {
-      setIsUploading(false);
-      e.target.value = '';
     }
   };
 
@@ -117,6 +95,18 @@ const ContractList = () => {
     }
   };
 
+  const handleNewContract = () => {
+    setSelectedContract(null);
+    setIsViewOnly(false);
+    setIsClientSelectionOpen(true);
+  };
+
+  const handleClientSelect = (client: any) => {
+    setContractClient(client);
+    setIsClientSelectionOpen(false);
+    setIsContractOpen(true);
+  };
+
   return (
     <div className="p-8 pb-32 max-w-7xl mx-auto">
       <motion.div 
@@ -126,7 +116,7 @@ const ContractList = () => {
       >
         <div>
           <h1 className="text-3xl font-black text-zinc-900 dark:text-white tracking-tighter">Meus Contratos</h1>
-          <p className="text-zinc-500 font-medium">Gerencie e visualize seus contratos assinados.</p>
+          <p className="text-zinc-500 font-medium">Gerencie e visualize os contratos gerados para seus clientes.</p>
         </div>
       </motion.div>
 
@@ -208,22 +198,16 @@ const ContractList = () => {
         </div>
       )}
 
-      {/* Floating Action Buttons */}
+      {/* Floating Action Button */}
       <div className="fixed bottom-12 left-1/2 -translate-x-1/2 z-40 md:left-[calc(50%+128px)] flex flex-col items-center gap-4">
-        <label className={`flex items-center space-x-3 bg-solar-green hover:bg-green-700 text-white px-10 py-4 rounded-full font-black shadow-[0_20px_40px_rgba(76,175,80,0.3)] transition-all hover:-translate-y-1 active:scale-95 cursor-pointer ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}>
-          {isUploading ? <Clock size={20} className="animate-spin" /> : <Upload size={20} />}
-          <span className="text-sm uppercase tracking-wider">{isUploading ? 'Importando...' : 'Importar Modelo'}</span>
-          <input type="file" className="hidden" accept=".docx,.pdf" disabled={isUploading} onChange={handleFileUpload} />
-        </label>
-        
         <Button
-          onPress={() => setIsTemplateOpen(true)}
+          onPress={handleNewContract}
           variant="solar"
           size="lg"
           className="rounded-full px-12 py-5 shadow-[0_20px_40px_rgba(243,146,0,0.3)]"
         >
           <Plus size={24} className="mr-2" />
-          <span className="text-sm uppercase tracking-wider">Novo Modelo</span>
+          <span className="text-sm uppercase tracking-wider">Novo Contrato</span>
         </Button>
       </div>
 
@@ -234,14 +218,15 @@ const ContractList = () => {
         contract={selectedContract}
         isViewOnly={isViewOnly}
         onSuccess={() => {
-          showToast('Contrato atualizado!', 'success');
+          showToast(selectedContract ? 'Contrato atualizado!' : 'Contrato gerado!', 'success');
           fetchContracts(1, true);
         }}
       />
 
-      <ContractTemplateOverlay 
-        isOpen={isTemplateOpen}
-        onClose={() => setIsTemplateOpen(false)}
+      <ClientSelectionModal
+        isOpen={isClientSelectionOpen}
+        onClose={() => setIsClientSelectionOpen(false)}
+        onSelect={handleClientSelect}
       />
     </div>
   );
