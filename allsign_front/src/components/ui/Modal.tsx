@@ -40,7 +40,7 @@ const Modal = ({
           onOpenChange={onClose}
           isDismissable
           className={({ isEntering, isExiting }) => cn(
-            'fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm',
+            'fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm md:pl-72',
             isEntering && 'animate-in fade-in duration-150',
             isExiting && 'animate-out fade-out duration-100'
           )}

@@ -49,35 +49,25 @@ class ContractTemplateUploadView(APIView):
             if not content_text:
                 return Response({"error": "Não foi possível extrair texto do arquivo."}, status=status.HTTP_400_BAD_REQUEST)
 
-            # Criar a estrutura de seções e blocos
-            # Vamos separar por parágrafos duplos (conforme extraído)
+            # Criar a nova estrutura unificada (Word-like)
+            # Vamos converter os parágrafos em HTML simples para o novo editor
             paragraphs = [p.strip() for p in content_text.split('\n\n') if p.strip()]
-            
-            blocks = []
+            html_paragraphs = ""
             for p in paragraphs:
-                # Heurística simples para detectar títulos/cláusulas
-                # Se for curto (menos de 80 chars) e estiver em maiúsculo ou começar com Cláusula
-                is_clause_title = (len(p) < 100) and (p.isupper() or p.lower().startswith('cláusula') or p.lower().startswith('clausula'))
-                
-                blocks.append({
-                    "type": "text_highlight" if is_clause_title else "text",
-                    "content": p
-                })
+                # Se for curto e maiúsculo, tratamos como título/cláusula
+                if (len(p) < 100) and (p.isupper() or p.lower().startswith('cláusula')):
+                    html_paragraphs += f"<h2>{p}</h2>"
+                else:
+                    html_paragraphs += f"<p>{p}</p>"
 
-            section = {
-                "id": "sec_imported_1",
-                "title": "Conteúdo Importado do Arquivo",
-                "mb": True,
-                "underline": False,
-                "page_break_before": False,
-                "blocks": blocks
-            }
-
-            # Montar o payload final para o template
+            # Montar o payload no novo formato unificado
             template_data = {
                 "name": f"Modelo: {file.name}",
                 "category": "Importado",
-                "content": {"sections": [section]}
+                "content": {
+                    "document_title": file.name,
+                    "html_content": html_paragraphs
+                }
             }
             
             serializer = ContractTemplateSerializer(data=template_data)
