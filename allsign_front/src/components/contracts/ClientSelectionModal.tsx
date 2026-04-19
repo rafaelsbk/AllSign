@@ -68,7 +68,7 @@ const ClientSelectionModal: React.FC<ClientSelectionModalProps> = ({ isOpen, onC
             <input
               type="text"
               placeholder="Buscar por nome ou CPF..."
-              className="w-full pl-11 pr-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 dark:text-white outline-none focus:ring-2 focus:ring-solar-blue/20 transition-all font-medium text-sm"
+              className="w-full pl-11 pr-4 py-3 rounded-xl border border-zinc-200 bg-white outline-none focus:ring-2 focus:ring-solar-blue/20 transition-all font-medium text-sm"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -78,7 +78,7 @@ const ClientSelectionModal: React.FC<ClientSelectionModalProps> = ({ isOpen, onC
           </Button>
         </form>
 
-        <div className="max-h-[400px] overflow-y-auto space-y-2 pr-2 scrollbar-thin scrollbar-thumb-zinc-200 dark:scrollbar-thumb-zinc-800">
+        <div className="max-h-[400px] overflow-y-auto space-y-2 pr-2 scrollbar-thin scrollbar-thumb-zinc-200">
           <AnimatePresence mode="popLayout">
             {clients.map((client) => (
               <motion.button
@@ -88,18 +88,18 @@ const ClientSelectionModal: React.FC<ClientSelectionModalProps> = ({ isOpen, onC
                 exit={{ opacity: 0, scale: 0.95 }}
                 key={client.id}
                 onClick={() => onSelect(client)}
-                className="w-full flex items-center justify-between p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/50 hover:bg-white dark:hover:bg-zinc-800 hover:shadow-lg hover:shadow-zinc-200/50 dark:hover:shadow-none transition-all group border border-transparent hover:border-zinc-100 dark:hover:border-zinc-700 text-left"
+                className="w-full flex items-center justify-between p-4 rounded-2xl bg-zinc-50 hover:bg-white hover:shadow-lg hover:shadow-zinc-200/50 transition-all group border border-transparent hover:border-zinc-100 text-left"
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-white dark:bg-zinc-900 shadow-sm flex items-center justify-center group-hover:bg-solar-blue group-hover:text-white transition-all">
+                  <div className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center group-hover:bg-solar-blue group-hover:text-white transition-all">
                     <User size={18} />
                   </div>
                   <div>
-                    <h4 className="font-bold text-zinc-900 dark:text-white leading-tight">{client.name}</h4>
+                    <h4 className="font-bold text-zinc-900 leading-tight">{client.name}</h4>
                     <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mt-1">CPF: {client.cpf}</p>
                   </div>
                 </div>
-                <div className="w-8 h-8 rounded-full flex items-center justify-center bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 text-zinc-400 group-hover:text-solar-blue group-hover:border-solar-blue/30 transition-all">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center bg-white border border-zinc-100 text-zinc-400 group-hover:text-solar-blue group-hover:border-solar-blue/30 transition-all">
                   <X size={14} className="rotate-45" />
                 </div>
               </motion.button>

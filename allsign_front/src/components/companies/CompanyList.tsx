@@ -81,8 +81,8 @@ const CompanyList = () => {
     <div className="p-8 pb-32 max-w-7xl mx-auto">
       <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
         <div>
-          <h1 className="text-4xl font-black text-zinc-900 dark:text-white tracking-tighter">Empresas</h1>
-          <p className="text-zinc-500 dark:text-zinc-400 font-medium mt-1">Gerencie as empresas parceiras e fornecedores</p>
+          <h1 className="text-4xl font-black text-zinc-900 tracking-tighter">Empresas</h1>
+          <p className="text-zinc-500 font-medium mt-1">Gerencie as empresas parceiras e fornecedores</p>
         </div>
       </div>
 
@@ -93,7 +93,7 @@ const CompanyList = () => {
             <input 
               type="text" 
               placeholder="Pesquisar por razão social ou CNPJ..." 
-              className="w-full pl-12 pr-4 h-14 rounded-2xl border border-zinc-200 bg-white focus:outline-none focus:ring-4 focus:ring-solar-orange/10 focus:border-solar-orange dark:bg-zinc-900 dark:border-zinc-800 dark:text-white transition-all font-medium" 
+              className="w-full pl-12 pr-4 h-14 rounded-2xl border border-zinc-200 bg-white focus:outline-none focus:ring-4 focus:ring-solar-orange/10 focus:border-solar-orange transition-all font-medium" 
               value={searchTerm} 
               onChange={(e) => setSearchTerm(e.target.value)} 
             />
@@ -117,22 +117,22 @@ const CompanyList = () => {
               animate={{ opacity: 1, y: 0 }} 
               transition={{ delay: index * 0.05, duration: 0.4, ease: [0.23, 1, 0.32, 1] }} 
               key={company.id} 
-              className="group relative rounded-[2.5rem] bg-white dark:bg-zinc-900 p-8 shadow-sm hover:shadow-2xl hover:shadow-solar-orange/5 transition-all duration-500 border border-zinc-100 dark:border-zinc-800"
+              className="group relative rounded-[2.5rem] bg-white p-8 shadow-sm hover:shadow-2xl hover:shadow-solar-orange/5 transition-all duration-500 border border-zinc-100"
             >
               <div className="flex flex-col h-full">
                 <div className="mb-6">
-                  <div className="w-14 h-14 rounded-2xl bg-zinc-50 dark:bg-zinc-800 flex items-center justify-center mb-6 group-hover:bg-solar-orange/10 group-hover:text-solar-orange transition-colors duration-500">
+                  <div className="w-14 h-14 rounded-2xl bg-zinc-50 flex items-center justify-center mb-6 group-hover:bg-solar-orange/10 group-hover:text-solar-orange transition-colors duration-500">
                     <Building2 size={28} className="opacity-60" />
                   </div>
-                  <h3 className="text-xl font-black text-zinc-900 dark:text-white truncate leading-tight mb-2" title={company.trading_name}>
+                  <h3 className="text-xl font-black text-zinc-900 truncate leading-tight mb-2" title={company.trading_name}>
                     {company.trading_name}
                   </h3>
                   <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">
-                    CNPJ: <span className="text-zinc-600 dark:text-zinc-400">{company.cnpj}</span>
+                    CNPJ: <span className="text-zinc-600">{company.cnpj}</span>
                   </p>
                 </div>
                 
-                <div className="mt-auto flex items-center justify-between pt-6 border-t border-zinc-50 dark:border-zinc-800/50">
+                <div className="mt-auto flex items-center justify-between pt-6 border-t border-zinc-50">
                   <div className="flex space-x-1">
                     <button 
                       onClick={() => handleView(company)} 
@@ -165,11 +165,11 @@ const CompanyList = () => {
       )}
 
       {!loading && companies.length === 0 && (
-        <div className="py-24 text-center bg-white dark:bg-zinc-900 rounded-[3rem] border border-dashed border-zinc-200 dark:border-zinc-800">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-zinc-50 dark:bg-zinc-800 mb-6">
+        <div className="py-24 text-center bg-white rounded-[3rem] border border-dashed border-zinc-200">
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-zinc-50 mb-6">
             <Building2 size={32} className="text-zinc-300" />
           </div>
-          <p className="text-zinc-500 dark:text-zinc-400 font-bold text-lg">Nenhuma empresa encontrada.</p>
+          <p className="text-zinc-500 font-bold text-lg">Nenhuma empresa encontrada.</p>
         </div>
       )}
 

@@ -141,7 +141,7 @@ const ProfessionalForm = ({ isOpen, onClose, professional, onSuccess, isViewOnly
             <TextField label="Email" type="email" isRequired isReadOnly={isViewOnly} value={formData.email} onChange={(val) => setFormData({...formData, email: val})} className="md:col-span-2" />
             
             <div className="md:col-span-2 space-y-3">
-              <label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">Telefones</label>
+              <label className="text-sm font-semibold text-zinc-700">Telefones</label>
               {formData.phones.map((phoneObj, index) => (
                 <div key={index} className="flex gap-2">
                   <TextField 
@@ -173,7 +173,7 @@ const ProfessionalForm = ({ isOpen, onClose, professional, onSuccess, isViewOnly
             <TextField label="Cidade" isReadOnly={isViewOnly} value={formData.city} onChange={(val) => setFormData({...formData, city: val})} />
           </div>
 
-          <div className="flex justify-end gap-3 pt-6 border-t border-zinc-100 dark:border-zinc-700">
+          <div className="flex justify-end gap-3 pt-6 border-t border-zinc-100">
             <Button variant="outline" onPress={onClose}>Cancelar</Button>
             {!isViewOnly && (
               <Button type="submit" variant="solar" isDisabled={loading}>

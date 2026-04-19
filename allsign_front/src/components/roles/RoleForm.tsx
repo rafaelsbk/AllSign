@@ -70,7 +70,7 @@ const RoleForm: React.FC<RoleFormProps> = ({ isOpen, onClose, onSuccess, role })
                     placeholder="Ex: Vendedor"
                 />
                 
-                <div className="flex justify-end gap-3 pt-6 border-t border-zinc-100 dark:border-zinc-700">
+                <div className="flex justify-end gap-3 pt-6 border-t border-zinc-100">
                     <Button variant="outline" onPress={onClose}>Cancelar</Button>
                     <Button type="submit" variant="solar" isDisabled={loading}>
                         {loading ? 'Salvando...' : 'Salvar'}

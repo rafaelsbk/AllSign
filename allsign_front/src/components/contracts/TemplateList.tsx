@@ -86,7 +86,7 @@ const TemplateList = () => {
         className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4"
       >
         <div>
-          <h1 className="text-3xl font-black text-zinc-900 dark:text-white tracking-tighter">Modelos de Contrato</h1>
+          <h1 className="text-3xl font-black text-zinc-900 tracking-tighter">Modelos de Contrato</h1>
           <p className="text-zinc-500 font-medium">Crie e gerencie as estruturas dos seus contratos.</p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
@@ -112,10 +112,10 @@ const TemplateList = () => {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
               key={template.id} 
-              className="bg-white dark:bg-zinc-900 rounded-[2.5rem] p-8 shadow-sm border border-zinc-100 dark:border-zinc-800 hover:shadow-2xl transition-all group"
+              className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-zinc-100 hover:shadow-2xl transition-all group"
             >
               <div className="flex justify-between items-start mb-8">
-                <div className="p-4 bg-solar-gold/10 dark:bg-solar-gold/5 rounded-2xl text-solar-gold group-hover:scale-110 transition-transform duration-500">
+                <div className="p-4 bg-solar-gold/10 rounded-2xl text-solar-gold group-hover:scale-110 transition-transform duration-500">
                   <FileText size={32} />
                 </div>
                 <div className="flex items-center space-x-2">
@@ -127,9 +127,9 @@ const TemplateList = () => {
                   </Button>
                 </div>
               </div>
-              <h3 className="text-xl font-black text-zinc-900 dark:text-white mb-2 tracking-tight">{template.name}</h3>
+              <h3 className="text-xl font-black text-zinc-900 mb-2 tracking-tight">{template.name}</h3>
               <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-6">{template.category || 'Geral'}</p>
-              <div className="flex items-center text-[10px] font-black text-zinc-400 uppercase tracking-widest pt-6 border-t border-zinc-50 dark:border-zinc-800">
+              <div className="flex items-center text-[10px] font-black text-zinc-400 uppercase tracking-widest pt-6 border-t border-zinc-50">
                 <span>Criado em: {new Date(template.created_at || Date.now()).toLocaleDateString('pt-BR')}</span>
               </div>
             </motion.div>
@@ -138,7 +138,7 @@ const TemplateList = () => {
       </motion.div>
 
       {!loading && templates.length === 0 && (
-        <div className="py-32 text-center bg-zinc-50 rounded-[3rem] dark:bg-zinc-800/20 border-2 border-dashed border-zinc-100 dark:border-zinc-800">
+        <div className="py-32 text-center bg-zinc-50 rounded-[3rem] border-2 border-dashed border-zinc-100">
           <p className="text-zinc-400 font-bold uppercase tracking-widest">Nenhum modelo encontrado.</p>
         </div>
       )}

@@ -48,7 +48,7 @@ const Modal = ({
           <AriaModal
             {...props}
             className={({ isEntering, isExiting }) => cn(
-              'w-full bg-white dark:bg-zinc-800 rounded-lg shadow-crisp-lg overflow-hidden focus:outline-none border border-zinc-200 dark:border-zinc-700',
+              'w-full bg-white rounded-lg shadow-crisp-lg overflow-hidden focus:outline-none border border-zinc-200',
               maxWidth,
               isEntering && 'animate-in zoom-in-98 duration-150',
               isExiting && 'animate-out zoom-out-98 duration-100'
@@ -57,13 +57,13 @@ const Modal = ({
             <Dialog className="relative outline-none">
               {({ close }) => (
                 <>
-                  <div className="flex items-center justify-between p-6 border-b border-zinc-100 dark:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-900/50">
-                    <Heading slot="title" className="text-xl font-bold text-zinc-900 dark:text-white">
+                  <div className="flex items-center justify-between p-6 border-b border-zinc-100 bg-zinc-50/50">
+                    <Heading slot="title" className="text-xl font-bold text-zinc-900">
                       {title}
                     </Heading>
                     <AriaButton
                       onPress={close}
-                      className="p-2 rounded-full hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 outline-none focus:ring-2 focus:ring-solar-gold"
+                      className="p-2 rounded-full hover:bg-zinc-200 transition-colors text-zinc-500 hover:text-zinc-700 outline-none focus:ring-2 focus:ring-solar-gold"
                     >
                       <X size={20} />
                     </AriaButton>

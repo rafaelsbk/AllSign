@@ -39,7 +39,7 @@ const TextField = ({
 
   return (
     <AriaTextField {...props} className={cn('flex flex-col gap-1', className)}>
-      {label && <Label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">{label}</Label>}
+      {label && <Label className="text-sm font-semibold text-zinc-700">{label}</Label>}
       <div className="relative">
         <Input
           type={inputType}
@@ -57,7 +57,7 @@ const TextField = ({
           <button
             type="button"
             onClick={() => setIsPasswordVisible(!isPasswordVisible)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 transition-colors"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 transition-colors"
             aria-label={isPasswordVisible ? 'Ocultar senha' : 'Mostrar senha'}
           >
             {isPasswordVisible ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -65,7 +65,7 @@ const TextField = ({
         )}
       </div>
       {description && <Text slot="description" className="text-xs text-zinc-500">{description}</Text>}
-      <FieldError className="text-xs font-medium text-red-600 dark:text-red-400">
+      <FieldError className="text-xs font-medium text-red-600">
         {errorMessage}
       </FieldError>
     </AriaTextField>

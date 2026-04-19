@@ -37,18 +37,18 @@ const Dashboard: React.FC = () => {
     <div className="p-8 pb-32 max-w-7xl mx-auto">
       <header className="mb-12 flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-4xl font-black text-zinc-900 dark:text-white tracking-tighter">
+          <h1 className="text-4xl font-black text-zinc-900 tracking-tighter">
             Dashboard
           </h1>
-          <p className="text-zinc-500 dark:text-zinc-400 mt-1 font-medium flex items-center">
+          <p className="text-zinc-500 mt-1 font-medium flex items-center">
             <Sun size={18} className="mr-2 text-solar-orange animate-spin-slow" />
             Visão geral da sua rede de energia inteligente.
           </p>
         </div>
         
-        <div className="flex items-center space-x-3 bg-white dark:bg-zinc-900 px-6 py-3 rounded-2xl border border-zinc-100 dark:border-zinc-800 shadow-sm">
+        <div className="flex items-center space-x-3 bg-white px-6 py-3 rounded-2xl border border-zinc-100 shadow-sm">
            <Calendar size={18} className="text-zinc-400" />
-           <span className="text-sm font-bold text-zinc-600 dark:text-zinc-300">
+           <span className="text-sm font-bold text-zinc-600">
              {new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}
            </span>
         </div>
@@ -66,7 +66,7 @@ const Dashboard: React.FC = () => {
             <motion.div
               key={idx}
               variants={item}
-              className="bg-white dark:bg-zinc-900 p-8 rounded-[2.5rem] shadow-sm hover:shadow-2xl hover:shadow-solar-orange/5 transition-all duration-500 border border-zinc-100 dark:border-zinc-800 group cursor-default"
+              className="bg-white p-8 rounded-[2.5rem] shadow-sm hover:shadow-2xl hover:shadow-solar-orange/5 transition-all duration-500 border border-zinc-100 group cursor-default"
             >
               <div className="flex items-center justify-between mb-8">
                 <div className={`w-14 h-14 rounded-2xl ${stat.color} flex items-center justify-center group-hover:scale-110 transition-transform duration-500`}>
@@ -77,8 +77,8 @@ const Dashboard: React.FC = () => {
                   <span className="text-[10px] font-black uppercase tracking-wider">{stat.change}</span>
                 </div>
               </div>
-              <p className="text-zinc-400 dark:text-zinc-500 text-[10px] font-black uppercase tracking-[0.2em] mb-1">{stat.name}</p>
-              <h3 className="text-4xl font-black text-zinc-900 dark:text-white">{stat.value}</h3>
+              <p className="text-zinc-400 text-[10px] font-black uppercase tracking-[0.2em] mb-1">{stat.name}</p>
+              <h3 className="text-4xl font-black text-zinc-900">{stat.value}</h3>
             </motion.div>
           );
         })}
@@ -129,10 +129,10 @@ const Dashboard: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6, duration: 0.8 }}
-          className="bg-white dark:bg-zinc-900 rounded-[3rem] p-10 border border-zinc-100 dark:border-zinc-800 shadow-sm flex flex-col"
+          className="bg-white rounded-[3rem] p-10 border border-zinc-100 shadow-sm flex flex-col"
         >
           <div className="mb-10">
-            <h2 className="text-2xl font-black dark:text-white tracking-tighter mb-2">Atalhos</h2>
+            <h2 className="text-2xl font-black tracking-tighter mb-2">Atalhos</h2>
             <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Ações Rápidas</p>
           </div>
           
@@ -147,9 +147,9 @@ const Dashboard: React.FC = () => {
                  <Link 
                   key={i}
                   to={action.path}
-                  className="w-full text-left p-5 rounded-[2rem] bg-zinc-50 dark:bg-zinc-800/50 hover:bg-white dark:hover:bg-zinc-800 hover:shadow-xl hover:shadow-zinc-200/50 dark:hover:shadow-none transition-all font-bold text-zinc-600 dark:text-zinc-300 flex items-center group border border-transparent hover:border-zinc-100 dark:hover:border-zinc-700"
+                  className="w-full text-left p-5 rounded-[2rem] bg-zinc-50 hover:bg-white hover:shadow-xl hover:shadow-zinc-200/50 transition-all font-bold text-zinc-600 flex items-center group border border-transparent hover:border-zinc-100"
                  >
-                   <div className="w-12 h-12 rounded-2xl bg-white dark:bg-zinc-900 shadow-sm flex items-center justify-center mr-4 group-hover:bg-zinc-900 group-hover:text-white dark:group-hover:bg-solar-orange transition-all">
+                   <div className="w-12 h-12 rounded-2xl bg-white shadow-sm flex items-center justify-center mr-4 group-hover:bg-zinc-900 group-hover:text-white transition-all">
                      <ActionIcon size={20} />
                    </div>
                    <div className="flex flex-col">
@@ -161,10 +161,10 @@ const Dashboard: React.FC = () => {
              })}
           </div>
           
-          <div className="mt-10 pt-10 border-t border-zinc-100 dark:border-zinc-800">
+          <div className="mt-10 pt-10 border-t border-zinc-100">
              <div className="bg-solar-orange/5 p-6 rounded-[2rem] border border-solar-orange/10">
                <p className="text-[10px] font-black text-solar-orange uppercase tracking-widest mb-2">Suporte AllSol</p>
-               <p className="text-sm font-bold text-zinc-600 dark:text-zinc-400">Precisa de ajuda com o sistema?</p>
+               <p className="text-sm font-bold text-zinc-600">Precisa de ajuda com o sistema?</p>
                <button className="mt-4 text-xs font-black uppercase text-solar-orange hover:text-solar-gold transition-colors">Abrir Chamado →</button>
              </div>
           </div>

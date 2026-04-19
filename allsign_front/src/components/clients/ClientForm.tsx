@@ -204,7 +204,7 @@ const ClientForm = ({ isOpen, onClose, client, onSuccess, isViewOnly, onOpenCont
           {error && (
             <motion.div
               initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, height: 0 }}
-              className="mb-6 p-4 rounded-xl bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800 text-sm font-medium flex items-center gap-3 shadow-sm"
+              className="mb-6 p-4 rounded-xl bg-red-50 text-red-700 border border-red-200 text-sm font-medium flex items-center gap-3 shadow-sm"
             >
               <AlertCircle size={20} className="shrink-0" />
               <span>{error}</span>
@@ -219,7 +219,7 @@ const ClientForm = ({ isOpen, onClose, client, onSuccess, isViewOnly, onOpenCont
             <TextField label="CPF / CNPJ" isRequired isReadOnly={isViewOnly} value={formData.cpf} onChange={handleCPFCNPJChange} isInvalid={!!duplicateCpfError} errorMessage={duplicateCpfError ? 'Este CPF já está cadastrado.' : ''} />
             
             <div className="md:col-span-2 space-y-3">
-              <label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">Telefones</label>
+              <label className="text-sm font-semibold text-zinc-700">Telefones</label>
               {formData.phones.map((phoneObj, index) => (
                 <div key={index} className="flex gap-2">
                   <TextField 
@@ -231,14 +231,14 @@ const ClientForm = ({ isOpen, onClose, client, onSuccess, isViewOnly, onOpenCont
                     className="flex-1"
                   />
                   {!isViewOnly && formData.phones.length > 1 && (
-                    <Button variant="ghost" size="icon" onPress={() => setFormData({...formData, phones: formData.phones.filter((_, i) => i !== index)})} className="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20">
+                    <Button variant="ghost" size="icon" onPress={() => setFormData({...formData, phones: formData.phones.filter((_, i) => i !== index)})} className="text-red-500 hover:bg-red-50">
                       <Trash2 size={18} />
                     </Button>
                   )}
                 </div>
               ))}
               {!isViewOnly && (
-                <Button variant="ghost" size="sm" onPress={() => setFormData({...formData, phones: [...formData.phones, { phone: '' }]})} className="text-solar-blue font-bold hover:bg-blue-50 dark:hover:bg-blue-900/20">
+                <Button variant="ghost" size="sm" onPress={() => setFormData({...formData, phones: [...formData.phones, { phone: '' }]})} className="text-solar-blue font-bold hover:bg-blue-50">
                   <Plus size={16} className="mr-1" /> Adicionar Telefone
                 </Button>
               )}
@@ -253,7 +253,7 @@ const ClientForm = ({ isOpen, onClose, client, onSuccess, isViewOnly, onOpenCont
             <TextField label="Cidade" isReadOnly={isViewOnly} value={formData.city} onChange={(val) => setFormData({...formData, city: val})} />
           </div>
 
-          <div className="flex justify-end gap-3 pt-6 border-t border-zinc-100 dark:border-zinc-700">
+          <div className="flex justify-end gap-3 pt-6 border-t border-zinc-100">
             <Button variant="outline" onPress={onClose}>Cancelar</Button>
             {!isViewOnly && (
               <Button type="submit" variant="solar" isDisabled={loading || !!duplicateCpfError}>

@@ -125,10 +125,10 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({ isOpen, onClose, onSuccess,
 
                 <div className="flex items-center space-x-2">
                    <input type="checkbox" id="is_active" checked={formData.is_active} onChange={(e) => setFormData({...formData, is_active: e.target.checked})} className="w-4 h-4 text-solar-orange rounded border-zinc-300 focus:ring-solar-gold" />
-                   <label htmlFor="is_active" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Funcionário Ativo</label>
+                   <label htmlFor="is_active" className="text-sm font-medium text-zinc-700">Funcionário Ativo</label>
                 </div>
 
-                <div className="flex justify-end gap-3 pt-6 border-t border-zinc-100 dark:border-zinc-700">
+                <div className="flex justify-end gap-3 pt-6 border-t border-zinc-100">
                     <Button variant="outline" onPress={onClose}>Cancelar</Button>
                     <Button type="submit" variant="solar" isDisabled={loading}>
                         {loading ? 'Salvando...' : 'Salvar'}
