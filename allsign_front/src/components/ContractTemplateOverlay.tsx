@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Save, Info, FileText, Globe } from 'lucide-react';
 import api from '../services/api';
 import RichTextEditor from './ui/RichTextEditor';
@@ -11,10 +11,18 @@ interface ContractTemplateOverlayProps {
 }
 
 const ContractTemplateOverlay: React.FC<ContractTemplateOverlayProps> = ({ isOpen, onClose, onSuccess, initialData }) => {
-  const [templateName, setTemplateName] = useState(initialData?.name || '');
-  const [category, setCategory] = useState(initialData?.category || 'Energia Solar');
-  const [htmlContent, setHtmlContent] = useState(initialData?.content?.html_content || '');
+  const [templateName, setTemplateName] = useState('');
+  const [category, setCategory] = useState('Energia Solar');
+  const [htmlContent, setHtmlContent] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setTemplateName(initialData?.name || '');
+      setCategory(initialData?.category || 'Energia Solar');
+      setHtmlContent(initialData?.content?.html_content || '');
+    }
+  }, [isOpen, initialData]);
 
   if (!isOpen) return null;
 
@@ -67,7 +75,7 @@ const ContractTemplateOverlay: React.FC<ContractTemplateOverlayProps> = ({ isOpe
           </div>
           <div className="flex items-center gap-3">
              <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-full transition-colors">
-              <X size={24} className="text-gray-50" />
+              <X size={24} className="text-gray-400 hover:text-red-500 transition-colors" />
             </button>
           </div>
         </div>
