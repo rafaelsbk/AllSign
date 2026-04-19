@@ -71,8 +71,8 @@ const EmployeeList: React.FC = () => {
         <div className="p-8 pb-32 max-w-7xl mx-auto">
             <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
                 <div>
-                    <h1 className="text-4xl font-black text-zinc-900 dark:text-white tracking-tighter">Funcionários</h1>
-                    <p className="text-zinc-500 dark:text-zinc-400 font-medium mt-1">Gerencie sua equipe interna e acessos</p>
+                    <h1 className="text-4xl font-black text-zinc-900 tracking-tighter">Funcionários</h1>
+                    <p className="text-zinc-500 font-medium mt-1">Gerencie sua equipe interna e acessos</p>
                 </div>
             </div>
 
@@ -83,7 +83,7 @@ const EmployeeList: React.FC = () => {
                         <input 
                             type="text" 
                             placeholder="Pesquisar funcionários..." 
-                            className="w-full pl-12 pr-4 h-14 rounded-2xl border border-zinc-200 bg-white focus:outline-none focus:ring-4 focus:ring-solar-orange/10 focus:border-solar-orange dark:bg-zinc-900 dark:border-zinc-800 dark:text-white transition-all font-medium" 
+                            className="w-full pl-12 pr-4 h-14 rounded-2xl border border-zinc-200 bg-white focus:outline-none focus:ring-4 focus:ring-solar-orange/10 focus:border-solar-orange transition-all font-medium" 
                             value={searchTerm} 
                             onChange={(e) => setSearchTerm(e.target.value)} 
                         />
@@ -104,28 +104,28 @@ const EmployeeList: React.FC = () => {
                             animate={{ opacity: 1, y: 0 }} 
                             transition={{ delay: index * 0.05, duration: 0.4, ease: [0.23, 1, 0.32, 1] }} 
                             key={employee.id} 
-                            className="group relative rounded-[2.5rem] bg-white dark:bg-zinc-900 p-8 shadow-sm hover:shadow-2xl hover:shadow-solar-orange/5 transition-all duration-500 border border-zinc-100 dark:border-zinc-800"
+                            className="group relative rounded-[2.5rem] bg-white p-8 shadow-sm hover:shadow-2xl hover:shadow-solar-orange/5 transition-all duration-500 border border-zinc-100"
                         >
                             <div className={`absolute top-8 right-8 w-2.5 h-2.5 rounded-full ${employee.is_active ? 'bg-solar-green shadow-[0_0_10px_rgba(76,175,80,0.5)]' : 'bg-red-500'}`} />
                             
                             <div className="flex flex-col h-full">
                                 <div className="mb-6">
-                                    <div className="w-14 h-14 rounded-2xl bg-zinc-50 dark:bg-zinc-800 flex items-center justify-center mb-6 group-hover:bg-solar-orange/10 group-hover:text-solar-orange transition-colors duration-500">
+                                    <div className="w-14 h-14 rounded-2xl bg-zinc-50 flex items-center justify-center mb-6 group-hover:bg-solar-orange/10 group-hover:text-solar-orange transition-colors duration-500">
                                         <Users size={28} className="opacity-60" />
                                     </div>
-                                    <h3 className="text-xl font-black text-zinc-900 dark:text-white truncate leading-tight mb-1" title={`${employee.first_name} ${employee.last_name}`}>
+                                    <h3 className="text-xl font-black text-zinc-900 truncate leading-tight mb-1" title={`${employee.first_name} ${employee.last_name}`}>
                                         {employee.first_name} {employee.last_name}
                                     </h3>
                                     <p className="text-sm font-bold text-solar-orange uppercase tracking-wider mb-4">
                                         {employee.role}
                                     </p>
-                                    <div className="flex items-center text-zinc-400 group-hover:text-zinc-600 dark:group-hover:text-zinc-300 transition-colors">
+                                    <div className="flex items-center text-zinc-400 group-hover:text-zinc-600 transition-colors">
                                         <Mail size={14} className="mr-2" />
                                         <span className="text-xs font-bold truncate">{employee.email}</span>
                                     </div>
                                 </div>
                                 
-                                <div className="mt-auto flex items-center justify-end pt-6 border-t border-zinc-50 dark:border-zinc-800/50 space-x-2">
+                                <div className="mt-auto flex items-center justify-end pt-6 border-t border-zinc-50 space-x-2">
                                     <button 
                                         onClick={() => handleOpenModal(employee)} 
                                         className="p-3 text-zinc-400 hover:text-solar-orange hover:bg-solar-orange/5 rounded-xl transition-all" 
@@ -148,11 +148,11 @@ const EmployeeList: React.FC = () => {
             )}
 
             {!loading && employees.length === 0 && (
-                <div className="py-24 text-center bg-white dark:bg-zinc-900 rounded-[3rem] border border-dashed border-zinc-200 dark:border-zinc-800">
-                    <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-zinc-50 dark:bg-zinc-800 mb-6">
+                <div className="py-24 text-center bg-white rounded-[3rem] border border-dashed border-zinc-200">
+                    <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-zinc-50 mb-6">
                         <Users size={32} className="text-zinc-300" />
                     </div>
-                    <p className="text-zinc-500 dark:text-zinc-400 font-bold text-lg">Nenhum funcionário encontrado.</p>
+                    <p className="text-zinc-500 font-bold text-lg">Nenhum funcionário encontrado.</p>
                 </div>
             )}
 

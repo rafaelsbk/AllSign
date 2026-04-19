@@ -41,22 +41,22 @@ const Select = <T extends object>({
     <AriaSelect {...props} className={cn('flex flex-col gap-1', className)}>
       {({ isInvalid }) => (
         <>
-          {label && <Label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">{label}</Label>}
+          {label && <Label className="text-sm font-semibold text-zinc-700">{label}</Label>}
           <Button
             className={({ isFocusVisible }) => cn(
-              'flex items-center justify-between w-full rounded-lg border bg-white px-3 py-2 text-sm transition-all focus:outline-none dark:bg-zinc-900',
-              'border-zinc-300 hover:border-zinc-400 dark:border-zinc-700 dark:hover:border-zinc-600',
+              'flex items-center justify-between w-full rounded-lg border bg-white px-3 py-2 text-sm transition-all focus:outline-none',
+              'border-zinc-300 hover:border-zinc-400',
               isFocusVisible && 'ring-2 ring-solar-gold/30 border-solar-gold',
               isInvalid && 'border-red-500 focus:ring-red-500/30',
-              'disabled:opacity-50 disabled:bg-zinc-100 dark:disabled:bg-zinc-800'
+              'disabled:opacity-50 disabled:bg-zinc-100'
             )}
           >
-            <SelectValue className="text-zinc-900 dark:text-white" />
+            <SelectValue className="text-zinc-900" />
             <ChevronDown size={16} className="text-zinc-400" />
           </Button>
           {description && <Text slot="description" className="text-xs text-zinc-500">{description}</Text>}
-          <FieldError className="text-xs font-medium text-red-600 dark:text-red-400">{errorMessage}</FieldError>
-          <Popover className="min-w-[--trigger-width] overflow-auto rounded-xl border border-zinc-200 bg-white shadow-xl dark:border-zinc-700 dark:bg-zinc-800">
+          <FieldError className="text-xs font-medium text-red-600">{errorMessage}</FieldError>
+          <Popover className="min-w-[--trigger-width] overflow-auto rounded-xl border border-zinc-200 bg-white shadow-xl">
             <ListBox items={items} className="p-1 outline-none">
               {children}
             </ListBox>
@@ -73,8 +73,8 @@ const SelectItem = (props: any) => {
       {...props}
       className={({ isFocused, isSelected }) => cn(
         'flex cursor-pointer items-center rounded-lg px-3 py-2 text-sm outline-none transition-colors',
-        isFocused && 'bg-zinc-100 dark:bg-zinc-700',
-        isSelected && 'bg-solar-orange/10 text-solar-orange font-bold dark:bg-solar-orange/20'
+        isFocused && 'bg-zinc-100',
+        isSelected && 'bg-solar-orange/10 text-solar-orange font-bold'
       )}
     />
   );

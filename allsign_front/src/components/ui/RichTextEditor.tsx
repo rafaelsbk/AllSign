@@ -22,56 +22,56 @@ const MenuBar = ({ editor }: { editor: any }) => {
   if (!editor) return null;
 
   return (
-    <div className="flex flex-wrap gap-1 p-2 border-b border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-900/50 sticky top-0 z-30 backdrop-blur-md">
+    <div className="flex flex-wrap gap-1 p-2 border-b border-gray-100 bg-gray-50/50 sticky top-0 z-30 backdrop-blur-md">
       <button
         onClick={() => editor.chain().focus().toggleBold().run()}
-        className={`p-2 rounded-lg transition-colors ${editor.isActive('bold') ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-zinc-800'}`}
+        className={`p-2 rounded-lg transition-colors ${editor.isActive('bold') ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:bg-gray-100'}`}
       >
         <Bold size={18} />
       </button>
       <button
         onClick={() => editor.chain().focus().toggleItalic().run()}
-        className={`p-2 rounded-lg transition-colors ${editor.isActive('italic') ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-zinc-800'}`}
+        className={`p-2 rounded-lg transition-colors ${editor.isActive('italic') ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:bg-gray-100'}`}
       >
         <Italic size={18} />
       </button>
       
-      <div className="w-px h-6 bg-gray-200 dark:bg-zinc-700 mx-1 self-center" />
+      <div className="w-px h-6 bg-gray-200 mx-1 self-center" />
 
       <button
         onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-        className={`p-2 rounded-lg transition-colors ${editor.isActive('heading', { level: 1 }) ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-zinc-800'}`}
+        className={`p-2 rounded-lg transition-colors ${editor.isActive('heading', { level: 1 }) ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:bg-gray-100'}`}
       >
         <Heading1 size={18} />
       </button>
       <button
         onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-        className={`p-2 rounded-lg transition-colors ${editor.isActive('heading', { level: 2 }) ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-zinc-800'}`}
+        className={`p-2 rounded-lg transition-colors ${editor.isActive('heading', { level: 2 }) ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:bg-gray-100'}`}
       >
         <Heading2 size={18} />
       </button>
 
-      <div className="w-px h-6 bg-gray-200 dark:bg-zinc-700 mx-1 self-center" />
+      <div className="w-px h-6 bg-gray-200 mx-1 self-center" />
 
       <button
         onClick={() => editor.chain().focus().toggleBulletList().run()}
-        className={`p-2 rounded-lg transition-colors ${editor.isActive('bulletList') ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-zinc-800'}`}
+        className={`p-2 rounded-lg transition-colors ${editor.isActive('bulletList') ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:bg-gray-100'}`}
       >
         <List size={18} />
       </button>
       <button
         onClick={() => editor.chain().focus().toggleOrderedList().run()}
-        className={`p-2 rounded-lg transition-colors ${editor.isActive('orderedList') ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-zinc-800'}`}
+        className={`p-2 rounded-lg transition-colors ${editor.isActive('orderedList') ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:bg-gray-100'}`}
       >
         <ListOrdered size={18} />
       </button>
 
-      <div className="w-px h-6 bg-gray-200 dark:bg-zinc-700 mx-1 self-center" />
+      <div className="w-px h-6 bg-gray-200 mx-1 self-center" />
 
       {/* Table Controls */}
       <button
         onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}
-        className="p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg"
+        className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg"
         title="Inserir Tabela"
       >
         <TableIcon size={18} />
@@ -112,7 +112,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ content, onChange, edit
     },
     editorProps: {
       attributes: {
-        class: 'prose prose-sm sm:prose lg:prose-lg xl:prose-2xl focus:outline-none min-h-[500px] p-12 bg-white dark:bg-zinc-900 shadow-inner',
+        class: 'prose prose-sm sm:prose lg:prose-lg xl:prose-2xl focus:outline-none min-h-[500px] p-12 bg-white shadow-inner',
       },
     },
   });
@@ -125,7 +125,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ content, onChange, edit
   }, [content, editor]);
 
   return (
-    <div className="border border-gray-100 dark:border-zinc-800 rounded-2xl overflow-hidden bg-white dark:bg-zinc-900 shadow-sm">
+    <div className="border border-gray-100 rounded-2xl overflow-hidden bg-white shadow-sm">
       {editable && <MenuBar editor={editor} />}
       <EditorContent editor={editor} />
       

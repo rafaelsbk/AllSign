@@ -20,9 +20,9 @@ const Button = ({
 }: ButtonProps) => {
   const variants = {
     primary: 'bg-solar-blue text-white hover:bg-blue-800 shadow-crisp focus:ring-solar-blue',
-    secondary: 'bg-zinc-100 text-zinc-900 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700 shadow-crisp',
-    outline: 'border border-zinc-300 bg-transparent hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800 shadow-crisp',
-    ghost: 'bg-transparent hover:bg-zinc-100 dark:hover:bg-zinc-800',
+    secondary: 'bg-zinc-100 text-zinc-900 hover:bg-zinc-200 shadow-crisp',
+    outline: 'border border-zinc-300 bg-transparent hover:bg-zinc-50 shadow-crisp',
+    ghost: 'bg-transparent hover:bg-zinc-100',
     danger: 'bg-red-600 text-white hover:bg-red-700 shadow-crisp focus:ring-red-500',
     solar: 'bg-solar-orange text-white hover:bg-solar-gold shadow-solar focus:ring-solar-gold transition-all duration-200 transform hover:-translate-y-[1px]',
   };

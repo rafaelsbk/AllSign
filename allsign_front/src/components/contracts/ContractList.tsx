@@ -115,7 +115,7 @@ const ContractList = () => {
         className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4"
       >
         <div>
-          <h1 className="text-3xl font-black text-zinc-900 dark:text-white tracking-tighter">Meus Contratos</h1>
+          <h1 className="text-3xl font-black text-zinc-900 tracking-tighter">Meus Contratos</h1>
           <p className="text-zinc-500 font-medium">Gerencie e visualize os contratos gerados para seus clientes.</p>
         </div>
       </motion.div>
@@ -127,7 +127,7 @@ const ContractList = () => {
             <input
               type="text"
               placeholder="Buscar por cliente..."
-              className="w-full pl-12 pr-6 py-4 rounded-2xl border border-zinc-200 bg-white dark:bg-zinc-900 dark:border-zinc-800 dark:text-white shadow-sm focus:ring-4 focus:ring-solar-blue/10 transition-all outline-none font-medium"
+              className="w-full pl-12 pr-6 py-4 rounded-2xl border border-zinc-200 bg-white shadow-sm focus:ring-4 focus:ring-solar-blue/10 transition-all outline-none font-medium"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -147,12 +147,12 @@ const ContractList = () => {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
               key={contract.id} 
-              className="group relative rounded-[2rem] bg-white p-6 shadow-sm border border-zinc-100 hover:shadow-2xl transition-all dark:bg-zinc-900 dark:border-zinc-800 border-l-[6px] border-l-solar-blue"
+              className="group relative rounded-[2rem] bg-white p-6 shadow-sm border border-zinc-100 hover:shadow-2xl transition-all border-l-[6px] border-l-solar-blue"
             >
               <div className="flex flex-col h-full">
                 <div className="flex justify-between items-start mb-6">
                   <div className="flex-1 min-w-0 mr-4">
-                    <h3 className="text-xl font-black text-zinc-900 dark:text-white truncate tracking-tight" title={contract.client_name}>
+                    <h3 className="text-xl font-black text-zinc-900 truncate tracking-tight" title={contract.client_name}>
                       {contract.client_name}
                     </h3>
                     <p className="text-xs font-bold text-solar-blue uppercase tracking-widest mt-1">
@@ -169,7 +169,7 @@ const ContractList = () => {
                   </div>
                 </div>
 
-                <div className="mt-auto flex items-center justify-end space-x-2 pt-6 border-t border-zinc-50 dark:border-zinc-800">
+                <div className="mt-auto flex items-center justify-end space-x-2 pt-6 border-t border-zinc-50">
                   <Button variant="ghost" size="icon" onPress={() => handleOpenContract(contract, true)} className="rounded-xl hover:bg-solar-blue/5 text-zinc-400 hover:text-solar-blue">
                     <Eye size={20} />
                   </Button>
@@ -187,7 +187,7 @@ const ContractList = () => {
       </motion.div>
 
       {!loading && contracts.length === 0 && (
-        <div className="py-32 text-center bg-zinc-50 rounded-[3rem] dark:bg-zinc-800/20 border-2 border-dashed border-zinc-100 dark:border-zinc-800">
+        <div className="py-32 text-center bg-zinc-50 rounded-[3rem] border-2 border-dashed border-zinc-100">
           <p className="text-zinc-400 font-bold uppercase tracking-widest">Nenhum contrato encontrado.</p>
         </div>
       )}

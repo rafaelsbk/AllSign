@@ -38,7 +38,7 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="relative flex h-screen w-screen items-center justify-center bg-zinc-50 px-4 dark:bg-zinc-950 overflow-hidden">
+    <div className="relative flex h-screen w-screen items-center justify-center bg-zinc-50 px-4 overflow-hidden">
       {/* Decorative Sun Background */}
       <div className="absolute -top-24 -right-24 w-96 h-96 bg-solar-gold/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-solar-orange/5 rounded-full blur-3xl pointer-events-none" />
@@ -49,15 +49,15 @@ const Login: React.FC = () => {
         transition={{ duration: 0.5 }}
         className="w-full max-w-sm z-10"
       >
-        <div className="bg-white dark:bg-zinc-900 p-8 rounded-[2.5rem] shadow-2xl border border-zinc-100 dark:border-zinc-800">
+        <div className="bg-white p-8 rounded-[2.5rem] shadow-2xl border border-zinc-100">
           <div className="mb-10 text-center">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-solar-orange rounded-2xl mb-6 shadow-solar rotate-3 group">
                <Sun size={32} className="text-white animate-spin-slow group-hover:rotate-12 transition-transform" />
             </div>
-            <h1 className="text-4xl font-black text-zinc-900 dark:text-white tracking-tighter">
+            <h1 className="text-4xl font-black text-zinc-900 tracking-tighter">
               All<span className="text-solar-orange">Sol</span>
             </h1>
-            <p className="mt-3 text-zinc-500 dark:text-zinc-400 font-medium">Gestão Inteligente de Energia Solar</p>
+            <p className="mt-3 text-zinc-500 font-medium">Gestão Inteligente de Energia Solar</p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-5">
@@ -83,7 +83,7 @@ const Login: React.FC = () => {
               <motion.p 
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="text-xs font-bold text-red-500 bg-red-50 dark:bg-red-950/30 p-3 rounded-xl border border-red-100 dark:border-red-900/50"
+                className="text-xs font-bold text-red-500 bg-red-50 p-3 rounded-xl border border-red-100"
               >
                 {error}
               </motion.p>

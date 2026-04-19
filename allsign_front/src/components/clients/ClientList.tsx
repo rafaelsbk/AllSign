@@ -140,12 +140,12 @@ const ClientList = () => {
         className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4"
       >
         <div>
-          <h1 className="text-3xl font-black text-zinc-900 dark:text-white tracking-tighter">Clientes</h1>
+          <h1 className="text-3xl font-black text-zinc-900 tracking-tighter">Clientes</h1>
           <p className="text-zinc-500 font-medium">Gerencie sua base de leads e clientes ativos.</p>
         </div>
         <div className="flex items-center space-x-6">
-          <label className="flex items-center space-x-3 text-sm font-bold text-zinc-600 dark:text-zinc-400 cursor-pointer group">
-            <div className={`w-5 h-5 rounded border-2 transition-all flex items-center justify-center ${onlyMine ? 'bg-solar-blue border-solar-blue' : 'border-zinc-300 dark:border-zinc-700'}`}>
+          <label className="flex items-center space-x-3 text-sm font-bold text-zinc-600 cursor-pointer group">
+            <div className={`w-5 h-5 rounded border-2 transition-all flex items-center justify-center ${onlyMine ? 'bg-solar-blue border-solar-blue' : 'border-zinc-300'}`}>
               {onlyMine && <div className="w-2 h-2 bg-white rounded-full" />}
             </div>
             <input
@@ -166,7 +166,7 @@ const ClientList = () => {
             <input
               type="text"
               placeholder="Pesquisar por Nome ou CPF..."
-              className="w-full pl-12 pr-6 py-4 rounded-2xl border border-zinc-200 bg-white dark:bg-zinc-900 dark:border-zinc-800 dark:text-white shadow-sm focus:ring-4 focus:ring-solar-blue/10 transition-all outline-none font-medium"
+              className="w-full pl-12 pr-6 py-4 rounded-2xl border border-zinc-200 bg-white shadow-sm focus:ring-4 focus:ring-solar-blue/10 transition-all outline-none font-medium"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -188,30 +188,30 @@ const ClientList = () => {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
               key={client.id} 
-              className={`group relative rounded-[2rem] bg-white p-6 shadow-sm border border-zinc-100 hover:shadow-2xl hover:shadow-solar-blue/5 transition-all dark:bg-zinc-900 dark:border-zinc-800 border-l-[6px] ${
+              className={`group relative rounded-[2rem] bg-white p-6 shadow-sm border border-zinc-100 hover:shadow-2xl hover:shadow-solar-blue/5 transition-all border-l-[6px] ${
                 client.is_active ? 'border-l-solar-blue' : 'border-l-red-500'
               }`}
             >
               <div className="flex flex-col h-full">
                 <div className="flex justify-between items-start mb-6">
                   <div className="flex-1 min-w-0 mr-4">
-                    <h3 className="text-xl font-black text-zinc-900 dark:text-white truncate tracking-tight" title={client.name}>
+                    <h3 className="text-xl font-black text-zinc-900 truncate tracking-tight" title={client.name}>
                       {client.name}
                     </h3>
                     <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest mt-1">
-                      CPF: <span className="text-zinc-600 dark:text-zinc-300">{client.cpf}</span>
+                      CPF: <span className="text-zinc-600">{client.cpf}</span>
                     </p>
                   </div>
                   <span className={`shrink-0 inline-flex items-center rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-wider ${
                     client.is_active 
                       ? 'bg-solar-blue/10 text-solar-blue' 
-                      : 'bg-red-50 text-red-600 dark:bg-red-900/30'
+                      : 'bg-red-50 text-red-600'
                   }`}>
                     {client.is_active ? 'Ativo' : 'Inativo'}
                   </span>
                 </div>
 
-                <div className="mt-auto flex items-center justify-end space-x-2 pt-6 border-t border-zinc-50 dark:border-zinc-800">
+                <div className="mt-auto flex items-center justify-end space-x-2 pt-6 border-t border-zinc-50">
                   <Button variant="ghost" size="icon" onPress={() => handleView(client)} className="rounded-xl hover:bg-solar-blue/5 text-zinc-400 hover:text-solar-blue">
                     <Eye size={20} />
                   </Button>
@@ -234,7 +234,7 @@ const ClientList = () => {
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="py-32 text-center bg-zinc-50 rounded-[3rem] dark:bg-zinc-800/20 border-2 border-dashed border-zinc-100 dark:border-zinc-800"
+          className="py-32 text-center bg-zinc-50 rounded-[3rem] border-2 border-dashed border-zinc-100"
         >
           <p className="text-zinc-400 font-bold uppercase tracking-widest">Nenhum cliente encontrado.</p>
         </motion.div>

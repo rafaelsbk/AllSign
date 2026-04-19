@@ -17,9 +17,9 @@ const PageLayout = () => {
   const location = useLocation();
   
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 md:pl-72 transition-colors duration-500 relative overflow-hidden">
+    <div className="min-h-screen bg-zinc-50 md:pl-72 transition-colors duration-500 relative overflow-hidden">
       {/* Elemento Decorativo de Fundo */}
-      <div className="absolute top-0 right-0 w-1/3 h-full bg-white dark:bg-zinc-900/30 -skew-x-12 translate-x-1/2 pointer-events-none" />
+      <div className="absolute top-0 right-0 w-1/3 h-full bg-white -skew-x-12 translate-x-1/2 pointer-events-none" />
       
       <Sidebar />
       <main className="pt-20 md:pt-0 relative z-10">

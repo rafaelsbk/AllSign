@@ -156,25 +156,25 @@ const ContractOverlay: React.FC<ContractOverlayProps> = ({ isOpen, onClose, clie
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-md p-0 md:p-6 md:pl-72 overflow-y-auto">
-      <div className="bg-white dark:bg-zinc-900 w-full max-w-[98vw] h-full max-h-[98vh] rounded-3xl shadow-2xl flex flex-col overflow-hidden border border-white/10">
+      <div className="bg-white w-full max-w-[98vw] h-full max-h-[98vh] rounded-3xl shadow-2xl flex flex-col overflow-hidden border border-white/10">
         
         {/* Top Header */}
-        <div className="p-6 border-b border-gray-100 dark:border-zinc-800 flex flex-wrap items-center justify-between gap-4 bg-white dark:bg-zinc-900 z-20 shrink-0">
+        <div className="p-6 border-b border-gray-100 flex flex-wrap items-center justify-between gap-4 bg-white z-20 shrink-0">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-2xl bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
               <ClipboardList size={24} />
             </div>
             <div>
-              <h2 className="text-xl font-bold dark:text-white">Gerar Contrato para Cliente</h2>
+              <h2 className="text-xl font-bold">Gerar Contrato para Cliente</h2>
               <p className="text-sm text-gray-500 font-medium uppercase">Preenchimento de Modelo Jurídico</p>
             </div>
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 bg-gray-50 dark:bg-zinc-800 p-2 rounded-xl border border-gray-100 dark:border-zinc-700">
+            <div className="flex items-center gap-2 bg-gray-50 p-2 rounded-xl border border-gray-100">
               <label className="text-[10px] font-black text-gray-400 uppercase px-2">Modelo:</label>
               <select 
-                className="bg-transparent text-sm font-bold outline-none dark:text-white min-w-[250px]"
+                className="bg-transparent text-sm font-bold outline-none min-w-[250px]"
                 value={selectedTemplateId}
                 onChange={(e) => handleTemplateChange(e.target.value)}
                 disabled={isTemplateLoading || isViewOnly}
@@ -183,7 +183,7 @@ const ContractOverlay: React.FC<ContractOverlayProps> = ({ isOpen, onClose, clie
                 {templates.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
               </select>
             </div>
-            <button onClick={onClose} className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-500 rounded-full transition-all">
+            <button onClick={onClose} className="p-2 hover:bg-red-50 text-gray-400 hover:text-red-500 rounded-full transition-all">
               <X size={28} />
             </button>
           </div>
@@ -191,13 +191,13 @@ const ContractOverlay: React.FC<ContractOverlayProps> = ({ isOpen, onClose, clie
 
         <div className="flex flex-1 overflow-hidden">
           {/* PAINEL DE VARIÁVEIS (DIREITA) */}
-          <div className="w-full md:w-[450px] border-r border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-950/20 overflow-y-auto p-8 shrink-0 order-2 md:order-1">
+          <div className="w-full md:w-[450px] border-r border-gray-100 bg-gray-50/50 overflow-y-auto p-8 shrink-0 order-2 md:order-1">
             <div className="space-y-8">
                 <div className="flex items-center gap-3 mb-6">
-                    <div className="p-2 bg-blue-100 dark:bg-blue-900/40 rounded-lg text-blue-600">
+                    <div className="p-2 bg-blue-100 rounded-lg text-blue-600">
                         <Type size={20} />
                     </div>
-                    <h3 className="text-sm font-black text-gray-700 dark:text-gray-300 uppercase tracking-widest">Dados do Contrato</h3>
+                    <h3 className="text-sm font-black text-gray-700 uppercase tracking-widest">Dados do Contrato</h3>
                 </div>
 
                 {!currentTemplate ? (
@@ -216,7 +216,7 @@ const ContractOverlay: React.FC<ContractOverlayProps> = ({ isOpen, onClose, clie
                                 <input 
                                     type="text"
                                     disabled={isViewOnly}
-                                    className="w-full p-3.5 rounded-2xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 dark:text-white focus:ring-4 focus:ring-blue-500/10 outline-none shadow-sm transition-all font-medium"
+                                    className="w-full p-3.5 rounded-2xl border border-gray-200 bg-white focus:ring-4 focus:ring-blue-500/10 outline-none shadow-sm transition-all font-medium"
                                     value={variablesData[v] || ''}
                                     onChange={(e) => setVariablesData({...variablesData, [v]: e.target.value})}
                                     placeholder={`Digite o(a) ${v.replace(/_/g, ' ')}...`}
@@ -229,7 +229,7 @@ const ContractOverlay: React.FC<ContractOverlayProps> = ({ isOpen, onClose, clie
           </div>
 
           {/* PREVIEW DO CONTRATO (ESQUERDA) */}
-          <div className="flex-1 bg-zinc-100 dark:bg-zinc-950 overflow-y-auto p-4 md:p-12 relative order-1 md:order-2">
+          <div className="flex-1 bg-zinc-100 overflow-y-auto p-4 md:p-12 relative order-1 md:order-2">
             {!currentTemplate ? (
               <div className="absolute inset-0 flex items-center justify-center opacity-5">
                 <h1 className="text-[120px] font-black rotate-[-15deg] select-none uppercase">Aguardando</h1>
@@ -247,8 +247,8 @@ const ContractOverlay: React.FC<ContractOverlayProps> = ({ isOpen, onClose, clie
         </div>
 
         {/* Footer Actions */}
-        <div className="p-6 border-t border-gray-100 dark:border-zinc-800 flex justify-end items-center gap-4 bg-white dark:bg-zinc-900 shrink-0">
-          <button onClick={onClose} className="px-8 py-3 rounded-2xl text-gray-500 font-bold hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors">
+        <div className="p-6 border-t border-gray-100 flex justify-end items-center gap-4 bg-white shrink-0">
+          <button onClick={onClose} className="px-8 py-3 rounded-2xl text-gray-500 font-bold hover:bg-gray-100 transition-colors">
             Sair sem Salvar
           </button>
           <button 
