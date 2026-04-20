@@ -79,8 +79,13 @@ const ContractTemplateOverlay: React.FC<ContractTemplateOverlayProps> = ({ isOpe
         { label: 'RG', value: 'client_rg' },
         { label: 'E-mail', value: 'client_email' },
         { label: 'Telefone', value: 'client_phone' },
-        { label: 'Endereço', value: 'client_address' },
+        { label: 'CEP', value: 'client_cep' },
+        { label: 'Logradouro', value: 'client_street' },
+        { label: 'Número', value: 'client_number' },
+        { label: 'Bairro', value: 'client_neighborhood' },
         { label: 'Cidade', value: 'client_city' },
+        { label: 'Estado (UF)', value: 'client_state' },
+        { label: 'Complemento', value: 'client_complement' },
       ]
     },
     {
@@ -90,7 +95,12 @@ const ContractTemplateOverlay: React.FC<ContractTemplateOverlayProps> = ({ isOpe
       vars: [
         { label: 'Razão Social', value: 'company_name' },
         { label: 'CNPJ', value: 'company_cnpj' },
-        { label: 'Endereço Sede', value: 'company_address' },
+        { label: 'CEP', value: 'company_cep' },
+        { label: 'Logradouro', value: 'company_street' },
+        { label: 'Número', value: 'company_number' },
+        { label: 'Bairro', value: 'company_neighborhood' },
+        { label: 'Cidade', value: 'company_city' },
+        { label: 'Estado (UF)', value: 'company_state' },
       ]
     },
     {
@@ -101,6 +111,12 @@ const ContractTemplateOverlay: React.FC<ContractTemplateOverlayProps> = ({ isOpe
         { label: 'Nome do Profissional', value: 'pro_name' },
         { label: 'CREA / Registro', value: 'pro_crea' },
         { label: 'CPF Profissional', value: 'pro_cpf' },
+        { label: 'CEP', value: 'pro_cep' },
+        { label: 'Logradouro', value: 'pro_street' },
+        { label: 'Número', value: 'pro_number' },
+        { label: 'Bairro', value: 'pro_neighborhood' },
+        { label: 'Cidade', value: 'pro_city' },
+        { label: 'Estado (UF)', value: 'pro_state' },
       ]
     },
     {
