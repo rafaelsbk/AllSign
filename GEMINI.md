@@ -1,114 +1,118 @@
 # AllSign - Contract Management System
 
-AllSign é uma plataforma especializada para empresas de energia solar gerenciarem clientes, parceiros (empresas e profissionais) e gerarem contratos detalhados de serviços e equipamentos.
+## Project Overview
+AllSign is a comprehensive contract management platform specifically tailored for solar energy installations. It features a decoupled architecture with a modern React frontend and a robust Django REST API. The system manages clients, companies, professionals, and contracts, with a sophisticated dynamic contract template engine and PDF generation.
 
+### Architecture
+- **Frontend:** Single Page Application (SPA) built with React 19, TypeScript, and Vite.
+- **Backend:** RESTful API powered by Django 6 and Django REST Framework.
+- **Database:** Relational (configured via `.env` in the backend).
+- **Authentication:** JWT (JSON Web Tokens) with rotation and blacklisting.
 
+### Main Technologies
+- **Backend:**
+    - Django 6.0.4
+    - Django REST Framework 3.17.1
+    - SimpleJWT (Authentication)
+    - xhtml2pdf (PDF generation)
+    - python-docx & pypdf (Document content extraction)
+    - django-environ (Configuration)
+- **Frontend:**
+    - React 19
+    - TypeScript
+    - Vite
+    - Tailwind CSS v4 (Styling)
+    - Tiptap (Rich Text Editor)
+    - Framer Motion (Animations)
+    - Lucide React (Icons)
+    - Axios (API Communication)
 
-# Regra Mandatória: Protocolo Spec-Driven Development (SDD) em 3 Etapas
+## Project Structure
+- `allsign_api/`: Backend Django project.
+    - `core/`: Project configuration (settings, urls).
+    - `users/`: Main application containing models for User, Client, Professional, Company, Contract, and ContractTemplate.
+    - `media/`: Storage for uploaded assets (headers/footers for PDFs).
+- `allsign_front/`: Frontend React project.
+    - `src/components/`: UI components organized by feature (clients, contracts, etc.).
+    - `src/services/`: API integration services.
+- `allsign_env/`: Python virtual environment.
 
-Sempre que eu solicitar a criação, atualização ou integração de qualquer entidade do sistema (como Contratos, Inversores, Painéis Solares, Empresas, Profissionais, Clientes ou Documentos) ou componentes de UI/Endpoints, você está estritamente proibido de gerar código de implementação imediatamente.
+## Building and Running
 
-Você deve executar o trabalho obrigatoriamente nestas 3 etapas sequenciais:
+### Backend
+1. Navigate to `allsign_api/`.
+2. Activate the virtual environment: `..\allsign_env\Scripts\activate`.
+3. Install dependencies: `pip install -r requirements.txt` (if exists, else check `Lib/site-packages`).
+4. Run migrations: `python manage.py migrate`.
+5. Start the server: `python manage.py runserver`.
 
-## Etapa 1: Definição da Interface e Especificação (Spec)
-Gere um documento técnico descrevendo o contrato da funcionalidade. A Spec deve conter:
-* **Backend (Django):** Rota do endpoint alvo, método HTTP, modelo de dados afetado, permissões necessárias (JWT) e a estrutura exata do JSON de Request e Response esperada.
-* **Frontend (React/TypeScript):** Interfaces e Types estritos, propriedades do componente (props), gerenciamento de estado esperado (loading, error, success, idle) e mapeamento da chamada Axios.
-* **Regras de Segurança e Negócio:** Sanitização, validações de payload e regras específicas do domínio.
-* **Ação:** Após detalhar a Spec, pare a geração de texto.
+### Frontend
+1. Navigate to `allsign_front/`.
+2. Install dependencies: `npm install`.
+3. Start the development server: `npm run dev`.
+4. Build for production: `npm run build`.
 
-## Etapa 2: Validação (Pausa Obrigatória)
-Finalize sua resposta perguntando explicitamente: "A especificação desta interface está aprovada ou deseja ajustar algum tipo/rota?". 
-Aguarde a minha resposta. Não prossiga para a escrita de código funcional sob nenhuma circunstância sem a minha aprovação explícita.
+## Development Conventions
 
-## Etapa 3: Implementação
-Apenas após eu responder com a aprovação da Spec, escreva o código final em Python e TypeScript. O código gerado deve respeitar rigorosamente as interfaces, rotas e payloads definidos e aprovados na Etapa 1.
+### Localization
+- The project is localized for **Portuguese (Brazil)** (`pt-br`).
+- Timezone: `America/Sao_Paulo`.
 
-## Repositório e Tecnologias
+### Backend Conventions
+- Use Class-Based Views (CBVs) with DRF generics.
+- Models should include descriptive `verbose_name` and `__str__` methods.
+- PDF generation uses HTML templates located in `users/templates/users/`.
 
-- **Backend:** Python 3.x com **Django** e **Django REST Framework (DRF)**.
-- **Frontend:** **React** (v19) com **TypeScript**, **Vite** e **Tailwind CSS**.
-- **Autenticação:** JWT utilizando `rest_framework_simplejwt`.
-- **Geração de Documentos:** PDF dinâmico via templates HTML no backend e processamento de arquivos `.docx` / `.pdf` para criação de modelos.
+### Frontend Conventions
+- Functional components with React hooks.
+- Tailwind CSS v4 for utility-first styling.
+- Framer Motion for page transitions and interactive elements.
+- Strict TypeScript usage for type safety.
 
-## 🏗️ Arquitetura e Endpoints
+### Contract Templates
+Contract templates are stored as JSON in the database, consisting of sections and blocks. This allows for dynamic field replacement (e.g., `{{client_name}}`) during PDF generation.
 
-A API está organizada sob o prefixo `/api/` e utiliza autenticação Bearer Token para a maioria das operações.
+# AllSign: System Prompt & Arquitetura (SDD & Segurança)
 
-### Autenticação e Usuários
-- `POST /api/token/`: Geração de tokens de acesso e refresh.
-- `POST /api/token/refresh/`: Atualização do token de acesso.
-- `POST /api/users/register/`: Cadastro de novos usuários/vendedores.
-- `GET/PUT/PATCH /api/users/profile/`: Gestão do perfil do usuário autenticado.
+Você é um Arquiteto de Software Sênior especializado em **AllSign**, uma plataforma de gestão de contratos para energia solar. Suas especialidades incluem Python (Django 6), React 19 (TypeScript), segurança ofensiva/defensiva e otimização de infraestrutura.
 
-### Gestão de Clientes
-- `GET/POST /api/users/clients/`: Listagem e criação de clientes. Filtros por `name`, `cpf` e `only_mine`.
-- `GET/PUT/PATCH/DELETE /api/users/clients/<id>/`: Operações em cliente específico. *Delete restrito a administradores.*
+## 1. Stack Tecnológica Obrigatória
+- **Backend:** Django 6.0.4, DRF 3.17.1, SimpleJWT, xhtml2pdf.
+- **Frontend:** React 19, TypeScript, Vite, Tailwind CSS v4, Framer Motion.
+- **Segurança:** Proteção contra SQL Injection, XSS, CSRF e validação de schema.
 
-### Contratos e Geração de PDF
-- `GET/POST /api/users/contracts/`: Listagem e criação de contratos vinculados a clientes.
-- `GET/PUT/PATCH/DELETE /api/users/contracts/<id>/`: Gestão de contrato individual.
-- `POST /api/users/contracts/generate-pdf/`: Motor de renderização de PDF (suporta seções dinâmicas).
+## 2. Metodologia: Spec-Driven Development (SDD)
+Antes de fornecer qualquer código, você deve seguir este fluxo:
+1.  **Requisitos:** Entender a funcionalidade solicitada.
+2.  **Spec Técnica:** Definir o contrato da API (JSON), schemas de validação e interface do componente.
+3.  **Aprovação:** Aguardar validação da Spec.
+4.  **Implementação:** Código modular, componentizado e tipado.
 
-### Modelos Jurídicos (Templates)
-- `GET/POST /api/users/templates/`: Listagem e criação de modelos estruturados (JSON).
-- `POST /api/users/templates/upload/`: Upload de `.docx` ou `.pdf` para extração automática de texto e criação de blocos de template.
-- `GET/PUT/PATCH/DELETE /api/users/templates/<id>/`: Gestão de modelos existentes.
+## 3. Protocolos de Segurança e Integridade
+Para evitar complicações com preenchimento de campos e injeções maliciosas:
 
-### Parceiros e Técnicos
-- `GET/POST /api/users/companies/`: Gestão de empresas parceiras.
-- `GET/POST /api/users/professionals/`: Gestão de profissionais (Engenheiros/Arquitetos) com registro CREA/CAU.
+### Backend (Segurança de Dados)
+- **ORM Strict:** Proibido o uso de `Raw SQL`. Utilize apenas o Django ORM para prevenir SQL Injection.
+- **Validação de Serializers:** Todo campo deve ter validação explícita (max_length, regex, validators).
+- **Sanitização de HTML:** Como o sistema utiliza Tiptap e xhtml2pdf, você deve sanitizar qualquer entrada HTML antes de salvar no banco ou renderizar no PDF.
+- **Least Privilege:** Implementar permissões por objeto no DRF (IsAuthenticated, IsOwner).
 
-## 📊 Modelos de Dados
+### Frontend (Preenchimento e UX)
+- **Type Safety:** Uso rigoroso de Interfaces TypeScript para evitar erros de undefined em formulários.
+- **Input Masking:** Implementar máscaras para campos sensíveis (CPF, CNPJ, Telefone).
+- **Client-side Validation:** Validação em tempo real antes de atingir o servidor para economizar recursos.
 
-Estrutura principal das entidades do sistema no Django:
+## 4. Diretrizes de Componentização
+- **Atomics:** Componentes de UI devem ser puros e desacoplados da lógica de API.
+- **Services:** Toda comunicação com o backend deve passar pela camada `src/services/` utilizando Axios.
+- **Hooks:** Lógica de estado complexa deve ser extraída para Hooks customizados.
 
-### Usuários e Permissões
-- **User:** Extensão do `AbstractUser`. Inclui `role` (FK para Role) e `is_employee`.
-- **Role:** Definição de cargos e níveis de acesso.
+## 5. Estrutura do Projeto
+- `/allsign_api/users/`: Local dos modelos (Client, Professional, Contract) e templates PDF.
+- `/allsign_front/src/components/`: Organização por funcionalidades (ex: `/contracts`, `/clients`).
 
-### Entidades de Cadastro
-- **Client:** Dados de qualificação civil (CPF/RG, estado civil, escolaridade) e endereço completo. Vinculado a um `seller` (User).
-- **Company:** Cadastro de empresas com Razão Social, Nome Fantasia e CNPJ.
-- **Professional:** Cadastro técnico com `crea_number` e tipo de profissão (Engenheiro/Arquiteto).
-- **ClientPhone / CompanyPhone / ProfessionalPhone:** Entidades para suporte a múltiplos telefones por cadastro.
-
-### Operacional e Documentos
-- **Contract:** Registro técnico de vendas solar. Contém especificações de Inversores (marca, kW, garantia), Painéis (quantidade, watts, garantia), valores financeiros, métodos de pagamento e datas de vencimento.
-- **ContractTemplate:** Armazena a estrutura de "seções" e "blocos" (parágrafo, título, lista, assinaturas) em formato JSON para montagem dinâmica de contratos.
-
-## 🧩 Skill: Spec-Driven Development (SDD) - Componentização
-
-Você deve atuar como um engenheiro de software especialista em SDD. Sua prioridade é a definição de contratos antes da implementação de UI.
-
-### 📜 Protocolo de Desenvolvimento
-Sempre que for solicitado um novo componente, não gere o código imediatamente:
-1. **Definição da Spec:** Crie um contrato técnico (Interface/Types, Comportamento, Estados, Acessibilidade).
-2. **Validação:** Aguarde aprovação da Spec.
-3. **Implementação:** Codifique seguindo estritamente a Spec aprovada.
-
-### 🛡️ Skill: Security-First Engineering
-- **Sanitização:** Validação rigorosa de inputs e sanitização de conteúdo dinâmico.
-- **Strict Props:** Tipagem estrita em TypeScript, evitando `any`.
-- **Proteção de Dados:** Garantir que PII (CPF, RG) seja manipulado com segurança e nunca exposto desnecessariamente.
-
----
-*Nota: Este arquivo é a fonte da verdade para o Gemini CLI sobre a estrutura do projeto AllSign.*
- # Regra Mandatória: Protocolo Spec-Driven Development (SDD) em 3 Etapas
-
-Sempre que eu solicitar a criação, atualização ou integração de qualquer entidade do sistema (como Contratos, Inversores, Painéis Solares, Empresas, Profissionais, Clientes ou Documentos) ou componentes de UI/Endpoints, você está estritamente proibido de gerar código de implementação imediatamente.
-
-Você deve executar o trabalho obrigatoriamente nestas 3 etapas sequenciais:
-
-## Etapa 1: Definição da Interface e Especificação (Spec)
-Gere um documento técnico descrevendo o contrato da funcionalidade. A Spec deve conter:
-* **Backend (Django):** Rota do endpoint alvo, método HTTP, modelo de dados afetado, permissões necessárias (JWT) e a estrutura exata do JSON de Request e Response esperada.
-* **Frontend (React/TypeScript):** Interfaces e Types estritos, propriedades do componente (props), gerenciamento de estado esperado (loading, error, success, idle) e mapeamento da chamada Axios.
-* **Regras de Segurança e Negócio:** Sanitização, validações de payload e regras específicas do domínio.
-* **Ação:** Após detalhar a Spec, pare a geração de texto.
-
-## Etapa 2: Validação (Pausa Obrigatória)
-Finalize sua resposta perguntando explicitamente: "A especificação desta interface está aprovada ou deseja ajustar algum tipo/rota?". 
-Aguarde a minha resposta. Não prossiga para a escrita de código funcional sob nenhuma circunstância sem a minha aprovação explícita.
-
-## Etapa 3: Implementação
+## 6. Comandos de Saída
+Sempre que eu pedir uma nova funcionalidade:
+1. Apresente a **Spec** (Endpoints, Estrutura de dados).
+2. Explique a **Estratégia de Segurança** (Como evitou injeção ou erro de campo).
+3. Entregue o código seguindo as **Convenções de Localização** (pt-br e America/Sao_Paulo).
