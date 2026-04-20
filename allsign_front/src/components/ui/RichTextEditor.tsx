@@ -62,6 +62,27 @@ const FontSize = Extension.create({
   },
 });
 
+// Custom TableCell Extension to support background color
+const CustomTableCell = TableCell.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      backgroundColor: {
+        default: null,
+        parseHTML: element => element.style.backgroundColor || null,
+        renderHTML: attributes => {
+          if (!attributes.backgroundColor) {
+            return {};
+          }
+          return {
+            style: `background-color: ${attributes.backgroundColor}`,
+          };
+        },
+      },
+    };
+  },
+});
+
 interface RichTextEditorProps {
   content: string;
   onChange: (html: string) => void;
@@ -190,14 +211,14 @@ const MenuBar = ({ editor }: { editor: any }) => {
         <TableIcon size={18} />
       </button>
 
-      {editor.isActive('table') && (
+      {(editor.isActive('table') || editor.isActive('tableRow') || editor.isActive('tableCell')) && (
         <>
           <div className="w-px h-6 bg-gray-200 mx-1 self-center" />
           
           <button onClick={() => editor.chain().focus().addColumnAfter().run()} className="p-2 text-green-600 hover:bg-green-50 rounded-lg" title="Adicionar Coluna">
             <Plus size={16} className="rotate-90" />
           </button>
-          <button onClick={() => editor.chain().focus().deleteColumn().run()} className="p-2 text-red-400 hover:bg-red-50 rounded-lg" title="Excluir Coluna">
+          <button onClick={() => editor.chain().focus().deleteColumn().focus().run()} className="p-2 text-red-400 hover:bg-red-50 rounded-lg" title="Excluir Coluna">
             <Minus size={16} className="rotate-90" />
           </button>
           
@@ -206,12 +227,35 @@ const MenuBar = ({ editor }: { editor: any }) => {
           <button onClick={() => editor.chain().focus().addRowAfter().run()} className="p-2 text-green-600 hover:bg-green-50 rounded-lg" title="Adicionar Linha">
             <Plus size={16} />
           </button>
-          <button onClick={() => editor.chain().focus().deleteRow().run()} className="p-2 text-red-400 hover:bg-red-50 rounded-lg" title="Excluir Linha">
+          <button onClick={() => editor.chain().focus().deleteRow().focus().run()} className="p-2 text-red-400 hover:bg-red-50 rounded-lg" title="Excluir Linha">
             <Minus size={16} />
           </button>
           
           <div className="w-px h-4 bg-gray-100 mx-1 self-center" />
           
+          {/* Cell Color Options */}
+          <div className="flex items-center gap-1 bg-white border border-gray-200 p-1 rounded-lg shadow-sm">
+             <button
+                onClick={() => editor.chain().focus().setCellAttribute('backgroundColor', '#f4f4f5').run()}
+                className="w-5 h-5 rounded bg-zinc-200 hover:scale-110 transition-transform border border-zinc-300"
+                title="Fundo Cinza"
+             />
+             <button
+                onClick={() => editor.chain().focus().setCellAttribute('backgroundColor', '#eff6ff').run()}
+                className="w-5 h-5 rounded bg-blue-100 hover:scale-110 transition-transform border border-blue-200"
+                title="Fundo Azul"
+             />
+             <button
+                onClick={() => editor.chain().focus().setCellAttribute('backgroundColor', null).run()}
+                className="w-5 h-5 rounded bg-white hover:scale-110 transition-transform border border-gray-300 flex items-center justify-center text-[10px] font-bold text-red-500"
+                title="Limpar Cor"
+             >
+                X
+             </button>
+          </div>
+
+          <div className="w-px h-4 bg-gray-100 mx-1 self-center" />
+
           <button onClick={() => editor.chain().focus().deleteTable().run()} className="p-2 text-red-600 hover:bg-red-100 rounded-lg" title="Excluir Tabela Completa">
             <Trash2 size={18} />
           </button>
@@ -236,7 +280,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ content, onChange, edit
       }),
       TableRow,
       TableHeader,
-      TableCell,
+      CustomTableCell,
     ],
     content: content,
     editable: editable,
@@ -347,12 +391,20 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ content, onChange, edit
         }
         .ProseMirror td ul, .ProseMirror td ol, 
         .ProseMirror th ul, .ProseMirror th ol {
-          margin: 0;
-          padding: 0 0 0 1.2rem;
-          list-style-position: outside;
+          margin: 0.5rem 0 !important;
+          padding: 0 0 0 1.5rem !important;
+          list-style-position: outside !important;
+          display: block !important;
+        }
+        .ProseMirror td ul, .ProseMirror th ul {
+          list-style-type: disc !important;
+        }
+        .ProseMirror td ol, .ProseMirror th ol {
+          list-style-type: decimal !important;
         }
         .ProseMirror td li, .ProseMirror th li {
-          margin: 0;
+          margin: 0 0 0.2rem 0 !important;
+          display: list-item !important;
         }
         .ProseMirror th {
           font-weight: bold;
