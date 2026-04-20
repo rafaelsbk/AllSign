@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { X, Save, FileDown, Info, Edit3, Type, ClipboardList } from 'lucide-react';
+import { X, Save, FileDown, Info, Type, ClipboardList } from 'lucide-react';
 import api from '../services/api';
 
 interface ContractOverlayProps {
@@ -89,7 +89,7 @@ const ContractOverlay: React.FC<ContractOverlayProps> = ({ isOpen, onClose, clie
   // 4. Resolve variáveis para o preview visual
   const resolveHTML = (html: string) => {
     if (!html) return '';
-    return html.replace(/\{\{\s*(\w+)\s*\}\}/g, (match, key) => {
+    return html.replace(/\{\{\s*(\w+)\s*\}\}/g, (_, key) => {
       const val = variablesData[key];
       if (val) return `<span class="text-blue-600 font-bold border-b border-blue-200">${val}</span>`;
       return `<span class="bg-amber-100 text-amber-700 font-bold px-1 rounded border border-amber-200">[${key.replace(/_/g, ' ')}]</span>`;
@@ -132,7 +132,7 @@ const ContractOverlay: React.FC<ContractOverlayProps> = ({ isOpen, onClose, clie
   const handleGeneratePDF = async () => {
     setLoading(true);
     try {
-      const resolvedHtml = (currentTemplate.content.html_content || '').replace(/\{\{\s*(\w+)\s*\}\}/g, (m, key) => variablesData[key] || '_______');
+      const resolvedHtml = (currentTemplate.content.html_content || '').replace(/\{\{\s*(\w+)\s*\}\}/g, (_: string, key: string) => variablesData[key] || '_______');
       const payload = {
         client_name: client?.name,
         html_content: resolvedHtml,

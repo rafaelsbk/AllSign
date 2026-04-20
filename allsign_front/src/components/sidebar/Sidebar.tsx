@@ -8,7 +8,6 @@ import {
   X,
   Users,
   FileText,
-  Settings,
   Sun,
   ChevronRight,
   Briefcase
