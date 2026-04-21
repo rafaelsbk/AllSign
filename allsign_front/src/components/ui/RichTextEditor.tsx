@@ -39,9 +39,9 @@ const PageNode = Node.create({
       'div', 
       mergeAttributes(HTMLAttributes, { 'data-type': 'page', class: 'a4-page' }),
       ['div', { class: 'page-letterhead-header', contenteditable: 'false' }],
-      ['div', { class: 'page-header-shield', contenteditable: 'false' }, 'CABEÇALHO'],
+      ['div', { class: 'page-header-shield', contenteditable: 'false' }],
       ['div', { class: 'page-content-area' }, 0],
-      ['div', { class: 'page-footer-shield', contenteditable: 'false' }, 'RODAPÉ'],
+      ['div', { class: 'page-footer-shield', contenteditable: 'false' }],
       ['div', { class: 'page-letterhead-footer', contenteditable: 'false' }]
     ];
   },
@@ -130,7 +130,7 @@ interface RichTextEditorProps {
 
 const MenuBar = ({ editor }: { editor: any }) => {
   if (!editor) return null;
-  const fontSizes = ['12px', '14px', '16px', '18px', '20px', '24px', '32px', '48px'];
+  const fontSizes = ['10pt', '11pt', '12pt', '14pt', '16pt', '18pt', '20pt', '24pt', '32pt', '48pt'];
 
   return (
     <div className="flex flex-wrap gap-1 p-2 border-b border-gray-200 bg-white/95 sticky top-0 z-50 backdrop-blur-md shadow-md rounded-t-2xl no-print">
@@ -138,7 +138,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
         <select
           onChange={(e) => editor.chain().focus().setFontSize(e.target.value).run()}
           className="bg-transparent text-xs py-1 outline-none cursor-pointer pr-4 appearance-none"
-          value={editor.getAttributes('textStyle').fontSize || '16px'}
+          value={editor.getAttributes('textStyle').fontSize || '12pt'}
         >
           {fontSizes.map(size => <option key={size} value={size}>{size}</option>)}
         </select>
@@ -273,7 +273,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ content, onChange, edit
           position: absolute;
           top: ${letterhead?.header_margin_percent || 2.0}%;
           left: 0; right: 0;
-          height: 35mm;
+          height: 20.79mm;
           background-image: url("${letterhead?.header || ''}");
           background-size: contain;
           background-repeat: no-repeat;
@@ -287,7 +287,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ content, onChange, edit
           position: absolute;
           bottom: ${letterhead?.footer_margin_percent || 2.0}%;
           left: 0; right: 0;
-          height: 35mm;
+          height: 20.79mm;
           background-image: url("${letterhead?.footer || ''}");
           background-size: contain;
           background-repeat: no-repeat;
@@ -299,7 +299,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ content, onChange, edit
 
         /* SHIELDS (ESPAÇAMENTO VISUAL PARA CABEÇALHO E RODAPÉ) */
         .page-header-shield, .page-footer-shield {
-          height: 38mm;
+          height: 20.79mm;
           width: 100%;
           display: flex;
           align-items: flex-end;
@@ -317,12 +317,21 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ content, onChange, edit
           border-bottom: 1px dashed #f8fafc;
         }
 
+        .page-header-shield::after {
+          content: 'CABEÇALHO';
+        }
+
         .page-footer-shield {
+          height: 20.79mm;
           margin-top: auto;
           align-items: flex-start;
           padding-top: 5px;
           border-bottom: none;
           border-top: 1px dashed #f8fafc;
+        }
+
+        .page-footer-shield::after {
+          content: 'RODAPÉ';
         }
 
         /* ÁREA DE DIGITAÇÃO */
