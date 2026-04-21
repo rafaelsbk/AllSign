@@ -16,15 +16,50 @@ const ContractTemplateOverlay: React.FC<ContractTemplateOverlayProps> = ({ isOpe
   const [htmlContent, setHtmlContent] = useState('');
   const [loading, setLoading] = useState(false);
   const [customVar, setCustomVar] = useState('');
-  
+  const [selectedLetterhead, setSelectedLetterhead] = useState('none');
+  const [letterheadTemplates, setLetterheadTemplates] = useState<any[]>([
+    { id: 'none', name: 'Nenhum (Branco)', header_image: '', footer_image: '' }
+  ]);
+
   // Ref para o editor para inserção externa
   const editorRef = useRef<any>(null);
 
+  const fetchLetterheads = async () => {
+    try {
+      const response = await api.get('users/letterheads/');
+      const data = Array.isArray(response.data) ? response.data : response.data.results;
+      
+      const baseUrl = api.defaults.baseURL?.replace('/api', '') || 'http://localhost:8000';
+      const getFullUrl = (path: string) => {
+        if (!path) return '';
+        if (path.startsWith('http')) return path;
+        return `${baseUrl}${path.startsWith('/') ? path : `/${path}`}`;
+      };
+
+      const processedData = (data || []).map((lh: any) => ({
+        ...lh,
+        header_image: getFullUrl(lh.header_image),
+        footer_image: getFullUrl(lh.footer_image),
+      }));
+
+      setLetterheadTemplates([
+        { id: 'none', name: 'Nenhum (Branco)', header_image: '', footer_image: '' },
+        ...processedData
+      ]);
+    } catch (err) {
+      console.error('Erro ao buscar papéis timbrados:', err);
+    }
+  };
+
+  const currentLetterhead = letterheadTemplates.find(t => String(t.id) === String(selectedLetterhead)) || letterheadTemplates[0];
+
   useEffect(() => {
+    fetchLetterheads();
     if (isOpen) {
       setTemplateName(initialData?.name || '');
       setCategory(initialData?.category || 'Energia Solar');
       setHtmlContent(initialData?.content?.html_content || '');
+      setSelectedLetterhead(initialData?.content?.letterhead_id || 'none');
     }
   }, [isOpen, initialData]);
 
@@ -48,7 +83,8 @@ const ContractTemplateOverlay: React.FC<ContractTemplateOverlayProps> = ({ isOpe
         category: category,
         content: { 
             html_content: htmlContent,
-            document_title: templateName
+            document_title: templateName,
+            letterhead_id: selectedLetterhead !== 'none' ? selectedLetterhead : null
         }
       };
       
@@ -161,9 +197,9 @@ const ContractTemplateOverlay: React.FC<ContractTemplateOverlayProps> = ({ isOpe
           <div className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
             <div className="max-w-4xl mx-auto space-y-6">
                 {/* Informações de Registro */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm space-y-2">
-                        <label className="text-[10px] font-black text-gray-400 uppercase">Nome do Documento</label>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-white p-4 rounded-2xl border border-zinc-200 shadow-sm space-y-2">
+                        <label className="text-[10px] font-black text-zinc-400 uppercase">Nome do Documento</label>
                         <input 
                             className="w-full bg-transparent text-lg font-bold outline-none"
                             placeholder="Ex: Contrato Solar V2"
@@ -171,14 +207,28 @@ const ContractTemplateOverlay: React.FC<ContractTemplateOverlayProps> = ({ isOpe
                             onChange={e => setTemplateName(e.target.value)}
                         />
                     </div>
-                    <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm space-y-2">
-                        <label className="text-[10px] font-black text-gray-400 uppercase">Categoria</label>
+                    <div className="bg-white p-4 rounded-2xl border border-zinc-200 shadow-sm space-y-2">
+                        <label className="text-[10px] font-black text-zinc-400 uppercase">Categoria</label>
                         <input 
                             className="w-full bg-transparent text-lg font-bold outline-none"
                             placeholder="Ex: Venda / Instalação"
                             value={category}
                             onChange={e => setCategory(e.target.value)}
                         />
+                    </div>
+                    <div className="bg-white p-4 rounded-2xl border border-zinc-200 shadow-sm space-y-2">
+                        <label className="text-[10px] font-black text-zinc-400 uppercase flex items-center gap-1">
+                          <Globe size={10} /> Papel Timbrado (Preview)
+                        </label>
+                        <select 
+                            className="w-full bg-transparent text-lg font-bold outline-none cursor-pointer"
+                            value={selectedLetterhead}
+                            onChange={e => setSelectedLetterhead(e.target.value)}
+                        >
+                            {letterheadTemplates.map(t => (
+                                <option key={t.id} value={t.id}>{t.name}</option>
+                            ))}
+                        </select>
                     </div>
                 </div>
 
@@ -188,6 +238,10 @@ const ContractTemplateOverlay: React.FC<ContractTemplateOverlayProps> = ({ isOpe
                         content={htmlContent}
                         onChange={setHtmlContent}
                         onInit={(editor) => editorRef.current = editor}
+                        letterhead={{ 
+                          header: currentLetterhead.header_image, 
+                          footer: currentLetterhead.footer_image 
+                        }}
                     />
                 </div>
             </div>

@@ -1,42 +1,84 @@
 import React, { useEffect } from 'react';
 import { useEditor, EditorContent, Extension } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
+import Document from '@tiptap/extension-document';
 import { Node, mergeAttributes } from '@tiptap/core';
-import Underline from '@tiptap/extension-underline';
-import TextAlign from '@tiptap/extension-text-align';
-import { TextStyle } from '@tiptap/extension-text-style';
+import StarterKit from '@tiptap/starter-kit';
 import { Table } from '@tiptap/extension-table';
 import { TableRow } from '@tiptap/extension-table-row';
 import { TableCell } from '@tiptap/extension-table-cell';
 import { TableHeader } from '@tiptap/extension-table-header';
 import OrderedList from '@tiptap/extension-ordered-list';
 import BulletList from '@tiptap/extension-bullet-list';
-
+import Underline from '@tiptap/extension-underline';
+import TextAlign from '@tiptap/extension-text-align';
+import { TextStyle } from '@tiptap/extension-text-style';
 import { 
-  Bold, Italic, Underline as UnderlineIcon, 
+  Bold, Italic, List, ListOrdered, 
+  Table as TableIcon, Plus, Trash2, Minus,
   AlignLeft, AlignCenter, AlignRight, AlignJustify,
-  List, ListOrdered, Type, Scissors, Table as TableIcon,
-  Plus, Minus, Trash2, ChevronDown
+  Heading1, Heading2, Underline as UnderlineIcon,
+  ChevronDown, FilePlus, Type
 } from 'lucide-react';
 
-// --- 1. EXTENSÕES CUSTOMIZADAS ---
+// 1. Sistema de Paginação Real
+const CustomDocument = Document.extend({
+  content: 'page+',
+});
 
-// Extensão de Quebra de Página Manual
-const PageBreak = Node.create({
-  name: 'pageBreak',
+const PageNode = Node.create({
+  name: 'page',
   group: 'block',
-  selectable: true,
-  draggable: true,
-  parseHTML() { return [{ tag: 'div[data-type="page-break"]' }]; },
-  renderHTML() { return ['div', { 'data-type': 'page-break', class: 'page-break' }]; },
+  content: 'block+',
+  
+  parseHTML() {
+    return [{ tag: 'div[data-type="page"]' }];
+  },
+
+  renderHTML({ HTMLAttributes }) {
+    return [
+      'div', 
+      mergeAttributes(HTMLAttributes, { 'data-type': 'page', class: 'a4-page' }),
+      ['div', { class: 'page-letterhead-header', contenteditable: 'false' }],
+      ['div', { class: 'page-header-shield', contenteditable: 'false' }, 'CABEÇALHO'],
+      ['div', { class: 'page-content-area' }, 0],
+      ['div', { class: 'page-footer-shield', contenteditable: 'false' }, 'RODAPÉ'],
+      ['div', { class: 'page-letterhead-footer', contenteditable: 'false' }]
+    ];
+  },
+
   addCommands() {
     return {
-      setPageBreak: () => ({ chain }: any) => chain().insertContent({ type: 'pageBreak' }).run(),
+      addPage: () => ({ tr, dispatch, editor }) => {
+        if (dispatch) {
+          const { schema } = editor;
+          const pageType = schema.nodes.page;
+          const paragraphType = schema.nodes.paragraph;
+          
+          if (pageType && paragraphType) {
+            const newPage = pageType.create(null, [paragraphType.create()]);
+            tr.insert(tr.doc.content.size, newPage);
+          }
+        }
+        return true;
+      },
     } as any;
   },
 });
 
-// Extensão de Tamanho de Fonte
+// 2. Extensões de Estilo
+const CustomOrderedList = OrderedList.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      type: {
+        default: '1',
+        parseHTML: element => element.getAttribute('type'),
+        renderHTML: attributes => ({ type: attributes.type }),
+      },
+    };
+  },
+});
+
 const FontSize = Extension.create({
   name: 'fontSize',
   addOptions() { return { types: ['textStyle'] }; },
@@ -46,206 +88,266 @@ const FontSize = Extension.create({
       attributes: {
         fontSize: {
           default: null,
-          parseHTML: el => el.style.fontSize,
-          renderHTML: attr => attr.fontSize ? { style: `font-size: ${attr.fontSize}` } : {},
+          parseHTML: element => element.style.fontSize.replace(/['"]+/g, ''),
+          renderHTML: attributes => attributes.fontSize ? { style: `font-size: ${attributes.fontSize}` } : {},
         },
       },
     }];
   },
   addCommands() {
     return {
-      setFontSize: (size: string) => ({ chain }: any) => chain().setMark('textStyle', { fontSize: size }).run(),
+      setFontSize: (fontSize: string) => ({ chain }: any) => chain().setMark('textStyle', { fontSize }).run(),
+      unsetFontSize: () => ({ chain }: any) => chain().setMark('textStyle', { fontSize: null }).removeEmptyTextStyle().run(),
     } as any;
   },
 });
 
-// Célula de Tabela com Cor
 const CustomTableCell = TableCell.extend({
   addAttributes() {
     return {
       ...this.parent?.(),
       backgroundColor: {
         default: null,
-        parseHTML: el => el.style.backgroundColor,
-        renderHTML: attr => attr.backgroundColor ? { style: `background-color: ${attr.backgroundColor}` } : {},
+        parseHTML: element => element.style.backgroundColor || null,
+        renderHTML: attributes => attributes.backgroundColor ? { style: `background-color: ${attributes.backgroundColor}` } : {},
       },
     };
   },
 });
 
-// --- 2. COMPONENTE DA BARRA DE FERRAMENTAS ---
+interface RichTextEditorProps {
+  content: string;
+  onChange: (html: string) => void;
+  editable?: boolean;
+  onInit?: (editor: any) => void;
+  letterhead?: { 
+    header: string; 
+    footer: string;
+    header_margin_percent?: number;
+    footer_margin_percent?: number;
+  };
+}
 
 const MenuBar = ({ editor }: { editor: any }) => {
   if (!editor) return null;
-  const sizes = ['12px', '14px', '16px', '18px', '20px', '24px', '32px'];
+  const fontSizes = ['12px', '14px', '16px', '18px', '20px', '24px', '32px', '48px'];
 
   return (
-    <div className="flex flex-wrap gap-1 p-2 border-b border-zinc-200 bg-white/95 sticky top-0 z-[60] backdrop-blur-md shadow-sm no-print">
-      {/* Font Size */}
-      <div className="relative flex items-center bg-zinc-50 border rounded-lg px-2 mr-1">
-        <select 
+    <div className="flex flex-wrap gap-1 p-2 border-b border-gray-200 bg-white/95 sticky top-0 z-50 backdrop-blur-md shadow-md rounded-t-2xl no-print">
+      <div className="relative group flex items-center bg-white border border-gray-200 rounded-lg px-2 mr-1 shadow-sm">
+        <select
           onChange={(e) => editor.chain().focus().setFontSize(e.target.value).run()}
-          className="bg-transparent text-xs py-1 outline-none font-bold pr-4 appearance-none cursor-pointer"
+          className="bg-transparent text-xs py-1 outline-none cursor-pointer pr-4 appearance-none"
           value={editor.getAttributes('textStyle').fontSize || '16px'}
         >
-          {sizes.map(s => <option key={s} value={s}>{s}</option>)}
+          {fontSizes.map(size => <option key={size} value={size}>{size}</option>)}
         </select>
-        <ChevronDown size={12} className="absolute right-1 pointer-events-none text-zinc-400" />
+        <ChevronDown size={12} className="absolute right-1 pointer-events-none text-gray-400" />
       </div>
 
-      <div className="flex gap-0.5 bg-zinc-50 p-0.5 rounded-lg border">
-        <button onClick={() => editor.chain().focus().toggleBold().run()} className={`p-1.5 rounded ${editor.isActive('bold') ? 'bg-zinc-800 text-white' : 'text-zinc-600 hover:bg-white'}`}><Bold size={16}/></button>
-        <button onClick={() => editor.chain().focus().toggleItalic().run()} className={`p-1.5 rounded ${editor.isActive('italic') ? 'bg-zinc-800 text-white' : 'text-zinc-600 hover:bg-white'}`}><Italic size={16}/></button>
-        <button onClick={() => editor.chain().focus().toggleUnderline().run()} className={`p-1.5 rounded ${editor.isActive('underline') ? 'bg-zinc-800 text-white' : 'text-zinc-600 hover:bg-white'}`}><UnderlineIcon size={16}/></button>
-      </div>
+      <div className="w-px h-6 bg-gray-200 mx-1 self-center" />
 
-      <div className="flex gap-0.5 bg-zinc-50 p-0.5 rounded-lg border">
-        <button onClick={() => editor.chain().focus().setTextAlign('left').run()} className={`p-1.5 rounded ${editor.isActive({ textAlign: 'left' }) ? 'bg-white shadow-sm' : ''}`}><AlignLeft size={16}/></button>
-        <button onClick={() => editor.chain().focus().setTextAlign('center').run()} className={`p-1.5 rounded ${editor.isActive({ textAlign: 'center' }) ? 'bg-white shadow-sm' : ''}`}><AlignCenter size={16}/></button>
-        <button onClick={() => editor.chain().focus().setTextAlign('right').run()} className={`p-1.5 rounded ${editor.isActive({ textAlign: 'right' }) ? 'bg-white shadow-sm' : ''}`}><AlignRight size={16}/></button>
-        <button onClick={() => editor.chain().focus().setTextAlign('justify').run()} className={`p-1.5 rounded ${editor.isActive({ textAlign: 'justify' }) ? 'bg-white shadow-sm' : ''}`}><AlignJustify size={16}/></button>
-      </div>
+      <button onClick={() => editor.chain().focus().toggleBold().run()} className={`p-2 rounded-lg transition-colors ${editor.isActive('bold') ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:bg-gray-100'}`} title="Negrito"><Bold size={18} /></button>
+      <button onClick={() => editor.chain().focus().toggleItalic().run()} className={`p-2 rounded-lg transition-colors ${editor.isActive('italic') ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:bg-gray-100'}`} title="Itálico"><Italic size={18} /></button>
+      <button onClick={() => editor.chain().focus().toggleUnderline().run()} className={`p-2 rounded-lg transition-colors ${editor.isActive('underline') ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:bg-gray-100'}`} title="Sublinhado"><UnderlineIcon size={18} /></button>
+      
+      <div className="w-px h-6 bg-gray-200 mx-1 self-center" />
 
-      <button onClick={() => editor.chain().focus().setPageBreak().run()} className="flex items-center gap-2 px-3 py-1 bg-indigo-50 text-indigo-700 rounded-lg border border-indigo-100 hover:bg-indigo-100 transition-colors font-bold text-[10px] uppercase">
-        <Scissors size={14} /> Quebra de Página
+      <button onClick={() => editor.chain().focus().setTextAlign('left').run()} className={`p-2 rounded-lg ${editor.isActive({ textAlign: 'left' }) ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:bg-gray-100'}`}><AlignLeft size={18} /></button>
+      <button onClick={() => editor.chain().focus().setTextAlign('center').run()} className={`p-2 rounded-lg ${editor.isActive({ textAlign: 'center' }) ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:bg-gray-100'}`}><AlignCenter size={18} /></button>
+      <button onClick={() => editor.chain().focus().setTextAlign('right').run()} className={`p-2 rounded-lg ${editor.isActive({ textAlign: 'right' }) ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:bg-gray-100'}`}><AlignRight size={18} /></button>
+      <button onClick={() => editor.chain().focus().setTextAlign('justify').run()} className={`p-2 rounded-lg ${editor.isActive({ textAlign: 'justify' }) ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:bg-gray-100'}`}><AlignJustify size={18} /></button>
+
+      <div className="w-px h-6 bg-gray-200 mx-1 self-center" />
+
+      <button onClick={() => editor.chain().focus().toggleBulletList().run()} className={`p-2 rounded-lg ${editor.isActive('bulletList') ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:bg-gray-100'}`}><List size={18} /></button>
+      <button onClick={() => editor.chain().focus().toggleOrderedList().run()} className={`p-2 rounded-lg ${editor.isActive('orderedList', { type: '1' }) ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:bg-gray-100'}`}><ListOrdered size={18} /></button>
+      <button onClick={() => editor.chain().focus().toggleOrderedList().updateAttributes('orderedList', { type: 'a' }).run()} className={`p-2 rounded-lg ${editor.isActive('orderedList', { type: 'a' }) ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:bg-gray-100'}`}>
+        <div className="flex flex-col items-center leading-none"><Type size={16} /><span className="text-[8px] font-extrabold -mt-0.5">ABC</span></div>
       </button>
 
-      <button onClick={() => editor.chain().focus().insertTable({ rows: 2, cols: 2 }).run()} className="p-2 text-zinc-600 hover:bg-zinc-100 rounded-lg"><TableIcon size={18}/></button>
+      <div className="w-px h-6 bg-gray-200 mx-1 self-center" />
+
+      <button
+        onClick={() => editor.chain().focus().addPage().run()}
+        className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg flex items-center gap-1 bg-purple-50/50 border border-purple-100"
+        title="Adicionar Nova Folha A4"
+      >
+        <FilePlus size={18} />
+        <span className="text-[10px] font-bold uppercase">Nova Folha</span>
+      </button>
+
+      <div className="w-px h-6 bg-gray-200 mx-1 self-center" />
+
+      <button onClick={() => editor.chain().focus().insertTable({ rows: 2, cols: 2, withHeaderRow: false }).run()} className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg"><TableIcon size={18} /></button>
+
+      {(editor.isActive('table') || editor.isActive('tableRow')) && (
+        <div className="flex items-center gap-1 ml-1 bg-zinc-50 p-1 rounded-lg border border-zinc-200">
+          <button onClick={() => editor.chain().focus().addColumnAfter().run()} className="p-1 text-emerald-600 hover:bg-white rounded" title="+ Coluna"><Plus size={14} className="rotate-90" /></button>
+          <button onClick={() => editor.chain().focus().deleteColumn().run()} className="p-1 text-red-500 hover:bg-white rounded" title="- Coluna"><Minus size={14} className="rotate-90" /></button>
+          <button onClick={() => editor.chain().focus().addRowAfter().run()} className="p-1 text-emerald-600 hover:bg-white rounded" title="+ Linha"><Plus size={14} /></button>
+          <button onClick={() => editor.chain().focus().deleteRow().run()} className="p-1 text-red-500 hover:bg-white rounded" title="- Linha"><Minus size={14} /></button>
+          <button onClick={() => editor.chain().focus().deleteTable().run()} className="p-1 text-red-700 hover:bg-red-100 rounded" title="Excluir"><Trash2 size={14} /></button>
+        </div>
+      )}
     </div>
   );
 };
 
-// --- 3. COMPONENTE PRINCIPAL ---
-
-const RichTextEditor: React.FC<RichTextEditorProps> = ({ content, onChange, onInit }) => {
+const RichTextEditor: React.FC<RichTextEditorProps> = ({ content, onChange, editable = true, onInit, letterhead }) => {
   const editor = useEditor({
     extensions: [
-      StarterKit.configure({ history: true }),
-      Underline,
+      CustomDocument,
+      StarterKit.configure({ document: false, orderedList: false, bulletList: false }),
+      PageNode,
+      CustomOrderedList,
+      BulletList,
       TextStyle,
       FontSize,
-      PageBreak,
+      Underline,
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
       Table.configure({ resizable: true }),
       TableRow,
       TableHeader,
       CustomTableCell,
     ],
-    content: content || '<p>Comece seu contrato aqui...</p>',
-    onUpdate: ({ editor }) => onChange(editor.getHTML()),
+    content: content || '<div data-type="page"><p></p></div>',
+    editable: editable,
+    onUpdate: ({ editor }) => {
+      onChange(editor.getHTML());
+      
+      // Detecção de Transbordamento (Pagination)
+      const dom = editor.view.dom;
+      const pages = dom.querySelectorAll('.a4-page');
+      const lastPage = pages[pages.length - 1] as HTMLElement;
+      
+      if (lastPage) {
+        const contentArea = lastPage.querySelector('.page-content-area') as HTMLElement;
+        // Se a área de conteúdo transbordar, adicionamos nova página
+        if (contentArea && contentArea.scrollHeight > contentArea.clientHeight + 5) {
+           editor.commands.addPage();
+        }
+      }
+    },
   });
 
   useEffect(() => { if (editor && onInit) onInit(editor); }, [editor, onInit]);
 
   return (
-    <div className="editor-workspace bg-zinc-200/50 min-h-full flex flex-col items-center p-4 md:p-12 overflow-y-auto">
+    <div className="border border-gray-100 rounded-2xl overflow-hidden bg-zinc-100 shadow-sm flex flex-col max-h-[85vh]">
+      {editable && <MenuBar editor={editor} />}
       
-      {/* Cabeçalho Fixo na Impressão (Não aparece no editor, ou aparece via CSS background) */}
-      <div className="print-header hidden">
-         {/* Conteúdo do seu Papel Timbrado aqui */}
-         <div className="w-full border-b-2 border-zinc-800 pb-2 flex justify-between items-end">
-            <span className="font-black text-xl tracking-tighter">ALLSIGN</span>
-            <span className="text-[10px] text-zinc-500 uppercase">Documento Gerado via AllSign Engenharia Solar</span>
-         </div>
-      </div>
-
-      <div className="editor-paper shadow-2xl relative">
-        <MenuBar editor={editor} />
-        <EditorContent editor={editor} className="tiptap-content" />
-      </div>
-
-      {/* Rodapé Fixo na Impressão */}
-      <div className="print-footer hidden">
-        <div className="w-full border-t border-zinc-200 pt-2 text-center text-[8px] text-zinc-400">
-          Página <span className="pageNumber"></span> de <span className="totalPages"></span>
+      <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-[#f1f5f9] custom-scrollbar scroll-smooth">
+        <div className="editor-view-viewport py-10 flex flex-col items-center">
+          <EditorContent editor={editor} />
         </div>
       </div>
-
+      
       <style>{`
-        /* --- ESTILOS DO EDITOR (TELA) --- */
+        .ProseMirror { min-height: 100%; outline: none; background: transparent; width: 100%; }
         
-        .editor-paper {
+        .editor-view-viewport .ProseMirror {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+
+        /* FOLHA A4 - TAMANHO REAL */
+        .a4-page {
           width: 210mm;
+          height: 297mm;
           background: white;
-          min-height: 297mm;
-          margin-bottom: 50px;
-        }
-
-        .tiptap-content .ProseMirror {
-          min-height: 297mm;
-          padding: 20mm !important; /* MARGENS DE 20mm SOLICITADAS */
-          outline: none;
-          
-          /* Visualização de Páginas A4 no Editor */
-          background-color: white;
-          background-image: 
-            /* Desenha o vão cinza a cada 297mm */
-            linear-gradient(to bottom, transparent 296mm, #e2e8f0 296mm, #e2e8f0 297mm);
-          background-size: 100% 297mm;
-        }
-
-        /* Estilo da Quebra de Página no Editor */
-        .page-break {
-          height: 40px;
-          margin: 2rem -20mm;
-          background: #f1f5f9;
-          border-top: 1px dashed #cbd5e1;
-          border-bottom: 1px dashed #cbd5e1;
+          margin-bottom: 40px;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.05);
+          border: 1px solid #e2e8f0;
+          display: flex;
+          flex-direction: column;
           position: relative;
-          cursor: default;
+          cursor: text;
+          overflow: hidden;
+          flex-shrink: 0;
         }
-        .page-break::after {
-          content: 'QUEBRA DE PÁGINA (IMPRESSÃO)';
+
+        /* POSICIONAMENTO DO PAPEL TIMBRADO (REPETE EM TODAS AS PÁGINAS) */
+        .page-letterhead-header {
           position: absolute;
-          top: 50%; left: 50%;
-          transform: translate(-50%, -50%);
-          font-size: 9px; font-weight: 900; color: #94a3b8; letter-spacing: 0.1em;
+          top: ${letterhead?.header_margin_percent || 2.0}%;
+          left: 0; right: 0;
+          height: 35mm;
+          background-image: url("${letterhead?.header || ''}");
+          background-size: contain;
+          background-repeat: no-repeat;
+          background-position: center;
+          z-index: 1;
+          pointer-events: none;
+          opacity: ${letterhead?.header ? '1' : '0.3'};
         }
 
-        /* --- ESTILOS DE IMPRESSÃO --- */
+        .page-letterhead-footer {
+          position: absolute;
+          bottom: ${letterhead?.footer_margin_percent || 2.0}%;
+          left: 0; right: 0;
+          height: 35mm;
+          background-image: url("${letterhead?.footer || ''}");
+          background-size: contain;
+          background-repeat: no-repeat;
+          background-position: center;
+          z-index: 1;
+          pointer-events: none;
+          opacity: ${letterhead?.footer ? '1' : '0.3'};
+        }
+
+        /* SHIELDS (ESPAÇAMENTO VISUAL PARA CABEÇALHO E RODAPÉ) */
+        .page-header-shield, .page-footer-shield {
+          height: 38mm;
+          width: 100%;
+          display: flex;
+          align-items: flex-end;
+          justify-content: center;
+          font-family: sans-serif;
+          font-size: 8px;
+          font-weight: 800;
+          color: #f1f5f9;
+          letter-spacing: 0.2em;
+          user-select: none;
+          pointer-events: none;
+          flex-shrink: 0;
+          z-index: 5;
+          padding-bottom: 5px;
+          border-bottom: 1px dashed #f8fafc;
+        }
+
+        .page-footer-shield {
+          margin-top: auto;
+          align-items: flex-start;
+          padding-top: 5px;
+          border-bottom: none;
+          border-top: 1px dashed #f8fafc;
+        }
+
+        /* ÁREA DE DIGITAÇÃO */
+        .page-content-area {
+          padding: 10mm 25mm !important;
+          flex-grow: 1;
+          z-index: 10;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .ProseMirror table { border-collapse: collapse; table-layout: fixed; width: 100%; margin: 0; overflow: hidden; }
+        .ProseMirror td, .ProseMirror th { min-width: 1em; border: 1px solid #ced4da; padding: 8px 12px; vertical-align: top; box-sizing: border-box; position: relative; }
+        .ProseMirror ul { list-style-type: disc !important; padding-left: 1.5rem !important; margin: 1rem 0 !important; }
+        .ProseMirror ol { padding-left: 1.5rem !important; margin: 1rem 0 !important; }
+        .ProseMirror li { display: list-item !important; margin-bottom: 0.25rem !important; }
+
+        .a4-page:focus-within {
+          border-color: #cbd5e1;
+          box-shadow: 0 15px 45px rgba(0,0,0,0.12);
+        }
         
-        @media print {
-          @page {
-            size: A4;
-            margin: 20mm; /* Margens físicas da impressora */
-          }
-
-          body, .editor-workspace { background: white !important; p: 0 !important; }
-          .editor-paper { width: 100% !important; box-shadow: none !important; border: none !important; margin: 0 !important; }
-          .no-print { display: none !important; }
-          
-          .tiptap-content .ProseMirror {
-            padding: 0 !important;
-            min-height: auto !important;
-            background-image: none !important;
-          }
-
-          .page-break {
-            display: block;
-            height: 0;
-            border: none;
-            page-break-after: always;
-          }
-
-          /* Cabeçalho e Rodapé Fixos em cada folha */
-          .print-header {
-            display: block !important;
-            position: fixed;
-            top: 0; left: 0; right: 0;
-            height: 20mm;
-          }
-          .print-footer {
-            display: block !important;
-            position: fixed;
-            bottom: 0; left: 0; right: 0;
-            height: 10mm;
-          }
-        }
-
-        /* Estilos Base Tiptap */
-        .ProseMirror p { margin-bottom: 1rem; line-height: 1.6; }
-        .ProseMirror table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
-        .ProseMirror td, .ProseMirror th { border: 1px solid #ddd; padding: 8px; }
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
       `}</style>
     </div>
   );

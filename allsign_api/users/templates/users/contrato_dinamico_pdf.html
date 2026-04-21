@@ -5,8 +5,26 @@
     <style>
         @page {
             size: a4;
-            margin: 2cm;
-            @frame footer {
+            margin-top: 3.5cm;
+            margin-bottom: 3.5cm;
+            margin-left: 2cm;
+            margin-right: 2cm;
+
+            @frame header_frame {
+                -pdf-frame-content: header_content;
+                left: 0cm; width: 21cm;
+                top: {{ header_margin_percent|default:2.0 }}%;
+                height: 3cm;
+            }
+
+            @frame footer_frame {
+                -pdf-frame-content: footer_content_img;
+                left: 0cm; width: 21cm;
+                bottom: {{ footer_margin_percent|default:2.0 }}%;
+                height: 3cm;
+            }
+
+            @frame footer_pagenum {
                 -pdf-frame-content: footer_content;
                 bottom: 1cm;
                 margin-left: 2cm;
@@ -40,6 +58,18 @@
     </style>
 </head>
 <body>
+    <!-- Papel Timbrado Imagens -->
+    <div id="header_content" style="text-align: center;">
+        {% if header_image_path %}
+            <img src="{{ header_image_path }}" style="width: 100%; height: 3cm; object-fit: contain;">
+        {% endif %}
+    </div>
+
+    <div id="footer_content_img" style="text-align: center;">
+        {% if footer_image_path %}
+            <img src="{{ footer_image_path }}" style="width: 100%; height: 3cm; object-fit: contain;">
+        {% endif %}
+    </div>
 
     {% if doc_title %}
     <div class="text-center mb-10">

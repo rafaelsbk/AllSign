@@ -1,11 +1,11 @@
 from rest_framework import generics, permissions, status, filters
 from rest_framework.response import Response
-from .models import User, Client, Contract, ContractTemplate, Company, Professional
+from .models import User, Client, Contract, ContractTemplate, Company, Professional, LetterheadTemplate
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .serializers import (
     MyTokenObtainPairSerializer, UserSerializer, ClientSerializer, 
     ContractSerializer, ContractTemplateSerializer,
-    CompanySerializer, ProfessionalSerializer
+    CompanySerializer, ProfessionalSerializer, LetterheadTemplateSerializer
 )
 from .permissions import IsAdmin
 from django_filters.rest_framework import DjangoFilterBackend
@@ -84,14 +84,33 @@ class GenerateContractPDFView(APIView):
 
     def post(self, request, *args, **kwargs):
         try:
-            data = request.data
+            data = request.data.copy()
+
+            # Busca o papel timbrado (por ID ou o primeiro ativo)
+            letterhead_id = data.get('letterhead_id')
+            letterhead = None
+            if letterhead_id:
+                letterhead = LetterheadTemplate.objects.filter(id=letterhead_id).first()
+            else:
+                letterhead = LetterheadTemplate.objects.filter(is_active=True).first()
+
+            if letterhead:
+                # xhtml2pdf precisa do caminho absoluto no sistema de arquivos
+                if letterhead.header_image:
+                    data['header_image_path'] = letterhead.header_image.path
+                if letterhead.footer_image:
+                    data['footer_image_path'] = letterhead.footer_image.path
+                
+                # Margens dinâmicas (percentual)
+                data['header_margin_percent'] = letterhead.header_margin_percent
+                data['footer_margin_percent'] = letterhead.footer_margin_percent
+
             # Se o payload contiver 'sections', usamos o novo motor dinâmico
             if 'sections' in data:
                 pdf = render_to_pdf('users/contrato_dinamico_pdf.html', data)
             else:
-                # Fallback para o contrato antigo hardcoded (compatibilidade)
                 pdf = render_to_pdf('users/contrato_pdf.html', data)
-                
+
             if pdf:
                 response = HttpResponse(pdf.content, content_type='application/pdf')
                 filename = f"Contrato_{data.get('client_name', 'Documento').replace(' ', '_')}.pdf"
@@ -201,4 +220,18 @@ class ProfessionalListCreateView(generics.ListCreateAPIView):
 class ProfessionalDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Professional.objects.all()
     serializer_class = ProfessionalSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+
+class LetterheadTemplateListView(generics.ListCreateAPIView):
+    queryset = LetterheadTemplate.objects.all().order_by('name')
+    serializer_class = LetterheadTemplateSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['is_active']
+    search_fields = ['name']
+    ordering_fields = ['name', 'created_at']
+
+class LetterheadTemplateDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = LetterheadTemplate.objects.all()
+    serializer_class = LetterheadTemplateSerializer
     permission_classes = (permissions.IsAuthenticated,)

@@ -9,6 +9,7 @@ import ContractList from './components/contracts/ContractList';
 import TemplateList from './components/contracts/TemplateList';
 import CompanyList from './components/companies/CompanyList';
 import ProfessionalList from './components/professionals/ProfessionalList';
+import LetterheadList from './components/letterheads/LetterheadList';
 import { ToastProvider } from './components/shared/ToastContext';
 
 // Layout Animado para rotas internas
@@ -59,6 +60,7 @@ function App() {
             <Route path="/templates" element={<TemplateList />} />
             <Route path="/companies" element={<CompanyList />} />
             <Route path="/professionals" element={<ProfessionalList />} />
+            <Route path="/letterheads" element={<LetterheadList />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/" />} />

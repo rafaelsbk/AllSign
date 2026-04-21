@@ -98,7 +98,12 @@ class ContractSerializer(serializers.ModelSerializer):
         model = Contract
         fields = '__all__'
 
-from .models import ContractTemplate, Company, CompanyPhone, Professional, ProfessionalPhone
+from .models import ContractTemplate, Company, CompanyPhone, Professional, ProfessionalPhone, LetterheadTemplate
+
+class LetterheadTemplateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LetterheadTemplate
+        fields = '__all__'
 
 class CompanyPhoneSerializer(serializers.ModelSerializer):
     class Meta:
