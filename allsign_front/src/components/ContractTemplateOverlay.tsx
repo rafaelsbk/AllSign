@@ -169,8 +169,8 @@ const ContractTemplateOverlay: React.FC<ContractTemplateOverlayProps> = ({ isOpe
   ];
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 md:pl-72 overflow-y-auto">
-      <div className="bg-white w-full max-w-[95vw] rounded-2xl shadow-2xl flex flex-col h-full max-h-[95vh]">
+    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 md:pl-72 overflow-hidden">
+      <div className="bg-white w-full max-w-[95vw] rounded-2xl shadow-2xl flex flex-col h-[95vh]">
         
         {/* Header Estilo Office */}
         <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-white rounded-t-2xl sticky top-0 z-40">

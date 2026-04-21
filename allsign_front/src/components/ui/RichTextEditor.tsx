@@ -71,7 +71,7 @@ const CustomOrderedList = OrderedList.extend({
     return {
       ...this.parent?.(),
       type: {
-        default: '1',
+        default: 'a', // MUDANÇA: Agora o padrão é alfabético
         parseHTML: element => element.getAttribute('type'),
         renderHTML: attributes => ({ type: attributes.type }),
       },
@@ -160,10 +160,20 @@ const MenuBar = ({ editor }: { editor: any }) => {
 
       <div className="w-px h-6 bg-gray-200 mx-1 self-center" />
 
-      <button onClick={() => editor.chain().focus().toggleBulletList().run()} className={`p-2 rounded-lg ${editor.isActive('bulletList') ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:bg-gray-100'}`}><List size={18} /></button>
-      <button onClick={() => editor.chain().focus().toggleOrderedList().run()} className={`p-2 rounded-lg ${editor.isActive('orderedList', { type: '1' }) ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:bg-gray-100'}`}><ListOrdered size={18} /></button>
-      <button onClick={() => editor.chain().focus().toggleOrderedList().updateAttributes('orderedList', { type: 'a' }).run()} className={`p-2 rounded-lg ${editor.isActive('orderedList', { type: 'a' }) ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:bg-gray-100'}`}>
+      <button onClick={() => editor.chain().focus().toggleBulletList().run()} className={`p-2 rounded-lg ${editor.isActive('bulletList') ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:bg-gray-100'}`} title="Lista de Pontos"><List size={18} /></button>
+      <button 
+        onClick={() => editor.chain().focus().toggleOrderedList().run()} 
+        className={`p-2 rounded-lg ${editor.isActive('orderedList', { type: 'a' }) ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:bg-gray-100'}`}
+        title="Lista Alfabética (a, b, c...)"
+      >
         <div className="flex flex-col items-center leading-none"><Type size={16} /><span className="text-[8px] font-extrabold -mt-0.5">ABC</span></div>
+      </button>
+      <button 
+        onClick={() => editor.chain().focus().toggleOrderedList().updateAttributes('orderedList', { type: '1' }).run()} 
+        className={`p-2 rounded-lg ${editor.isActive('orderedList', { type: '1' }) ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:bg-gray-100'}`}
+        title="Lista Numérica"
+      >
+        <ListOrdered size={18} />
       </button>
 
       <div className="w-px h-6 bg-gray-200 mx-1 self-center" />
@@ -216,16 +226,21 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ content, onChange, edit
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
       
-      // Detecção de Transbordamento (Pagination)
+      // Detecção de Transbordamento (Pagination) com Proteção de Loop
       const dom = editor.view.dom;
       const pages = dom.querySelectorAll('.a4-page');
       const lastPage = pages[pages.length - 1] as HTMLElement;
       
       if (lastPage) {
         const contentArea = lastPage.querySelector('.page-content-area') as HTMLElement;
-        // Se a área de conteúdo transbordar, adicionamos nova página
-        if (contentArea && contentArea.scrollHeight > contentArea.clientHeight + 5) {
-           editor.commands.addPage();
+        if (contentArea) {
+          const isOverflowing = contentArea.scrollHeight > contentArea.clientHeight + 5;
+          const hasContent = contentArea.innerText.trim().length > 0 || contentArea.querySelectorAll('img, table, hr').length > 0;
+          
+          // Só adiciona página se a atual transbordou E tem conteúdo
+          if (isOverflowing && hasContent) {
+             editor.commands.addPage();
+          }
         }
       }
     },
@@ -234,7 +249,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ content, onChange, edit
   useEffect(() => { if (editor && onInit) onInit(editor); }, [editor, onInit]);
 
   return (
-    <div className="border border-gray-100 rounded-2xl overflow-hidden bg-zinc-100 shadow-sm flex flex-col max-h-[85vh]">
+    <div className="border border-gray-100 rounded-2xl overflow-hidden bg-zinc-100 shadow-sm flex flex-col h-full">
       {editable && <MenuBar editor={editor} />}
       
       <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-[#f1f5f9] custom-scrollbar scroll-smooth">
@@ -244,6 +259,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ content, onChange, edit
       </div>
       
       <style>{`
+        * { box-sizing: border-box; }
         .ProseMirror { min-height: 100%; outline: none; background: transparent; width: 100%; }
         
         .editor-view-viewport .ProseMirror {
@@ -314,7 +330,6 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ content, onChange, edit
           flex-shrink: 0;
           z-index: 5;
           padding-bottom: 5px;
-          border-bottom: 1px dashed #f8fafc;
         }
 
         .page-header-shield::after {
@@ -322,22 +337,19 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ content, onChange, edit
         }
 
         .page-footer-shield {
-          height: 20.79mm;
           margin-top: auto;
           align-items: flex-start;
           padding-top: 5px;
-          border-bottom: none;
-          border-top: 1px dashed #f8fafc;
         }
 
         .page-footer-shield::after {
           content: 'RODAPÉ';
         }
 
-        /* ÁREA DE DIGITAÇÃO */
+        /* ÁREA DE DIGITAÇÃO COM ALTURA CALCULADA */
         .page-content-area {
-          padding: 10mm 25mm !important;
-          flex-grow: 1;
+          padding: 5mm 25mm !important;
+          height: calc(297mm - 41.58mm); /* Altura exata descontando os shields */
           z-index: 10;
           position: relative;
           overflow: hidden;
@@ -347,6 +359,9 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ content, onChange, edit
         .ProseMirror td, .ProseMirror th { min-width: 1em; border: 1px solid #ced4da; padding: 8px 12px; vertical-align: top; box-sizing: border-box; position: relative; }
         .ProseMirror ul { list-style-type: disc !important; padding-left: 1.5rem !important; margin: 1rem 0 !important; }
         .ProseMirror ol { padding-left: 1.5rem !important; margin: 1rem 0 !important; }
+        .ProseMirror ol[type="a"] { list-style-type: lower-alpha !important; }
+        .ProseMirror ol[type="A"] { list-style-type: upper-alpha !important; }
+        .ProseMirror ol[type="1"] { list-style-type: decimal !important; }
         .ProseMirror li { display: list-item !important; margin-bottom: 0.25rem !important; }
 
         .a4-page:focus-within {
