@@ -8,10 +8,10 @@ import {
   X,
   Users,
   FileText,
-  Settings,
   Sun,
   ChevronRight,
-  Briefcase
+  Briefcase,
+  FileType
 } from 'lucide-react';
 
 const Sidebar: React.FC = () => {
@@ -34,6 +34,7 @@ const Sidebar: React.FC = () => {
   const registrationItems = [
     { name: 'Empresas', path: '/companies', icon: Briefcase },
     { name: 'Engenheiros', path: '/professionals', icon: Users },
+    { name: 'Papéis Timbrados', path: '/letterheads', icon: FileType },
     { name: 'Modelos', path: '/templates', icon: Menu },
   ];
 

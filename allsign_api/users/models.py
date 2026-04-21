@@ -180,3 +180,15 @@ class ContractTemplate(models.Model):
 
     def __str__(self):
         return self.name
+
+class LetterheadTemplate(models.Model):
+    name = models.CharField(max_length=255, verbose_name="Nome do Papel Timbrado")
+    header_image = models.ImageField(upload_to='wrappers/headers/', verbose_name="Imagem de Cabeçalho")
+    footer_image = models.ImageField(upload_to='wrappers/footers/', verbose_name="Imagem de Rodapé")
+    header_margin_percent = models.FloatField(default=2.0, verbose_name="Margem Superior (%)")
+    footer_margin_percent = models.FloatField(default=2.0, verbose_name="Margem Inferior (%)")
+    is_active = models.BooleanField(default=True, verbose_name="Ativo")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
