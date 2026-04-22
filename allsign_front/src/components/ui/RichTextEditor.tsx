@@ -18,9 +18,14 @@ import {
   $isRangeSelection,
   FORMAT_TEXT_COMMAND,
   FORMAT_ELEMENT_COMMAND,
-  ParagraphNode
+  ParagraphNode,
+  DecoratorNode
 } from 'lexical';
-import type { LexicalEditor } from 'lexical';
+import type {
+  NodeKey,
+  LexicalNode,
+  SerializedLexicalNode
+} from 'lexical';
 import { 
   Bold, Italic, 
   AlignLeft, AlignCenter, AlignRight, AlignJustify,
@@ -52,6 +57,47 @@ const theme = {
   }
 };
 
+// 1. Nó Customizado para Pular o Gap e as Margens (Paginação Real)
+export class SpacerNode extends DecoratorNode<React.ReactNode> {
+  __height: number;
+
+  static getType(): string { return 'spacer'; }
+  static clone(node: SpacerNode): SpacerNode { return new SpacerNode(node.__height, node.__key); }
+  
+  constructor(height: number, key?: NodeKey) {
+    super(key);
+    this.__height = height;
+  }
+  
+  createDOM(): HTMLElement {
+    const el = document.createElement('div');
+    el.style.height = `${this.__height}px`;
+    el.style.width = '100%';
+    el.className = 'lexical-spacer pointer-events-none select-none';
+    el.contentEditable = "false";
+    return el;
+  }
+  
+  updateDOM(prevNode: SpacerNode, dom: HTMLElement): boolean {
+    if (prevNode.__height !== this.__height) {
+      dom.style.height = `${this.__height}px`;
+    }
+    return false;
+  }
+  
+  decorate(): React.ReactNode { return null; }
+  
+  exportJSON(): SerializedLexicalNode & { height: number } {
+    return { ...super.exportJSON(), height: this.__height, type: 'spacer', version: 1 };
+  }
+  
+  static importJSON(serializedNode: any): SpacerNode {
+    return $createSpacerNode(serializedNode.height);
+  }
+}
+export function $createSpacerNode(height: number): SpacerNode { return new SpacerNode(height); }
+export function $isSpacerNode(node: LexicalNode | null | undefined): node is SpacerNode { return node instanceof SpacerNode; }
+
 // Plugin para Sincronizar HTML e Variáveis
 const SyncPlugin = ({ onChange, onInit, initialHtml }: { onChange: (html: string) => void, onInit: any, initialHtml: string }) => {
   const [editor] = useLexicalComposerContext();
@@ -81,7 +127,11 @@ const SyncPlugin = ({ onChange, onInit, initialHtml }: { onChange: (html: string
     if (isFirstRender && initialHtml) {
       editor.update(() => {
         const parser = new DOMParser();
-        const dom = parser.parseFromString(initialHtml, 'text/html');
+        
+        // Remove spacers do HTML salvo para não duplicar espaços
+        const cleanHtml = initialHtml.replace(/<div class="lexical-spacer.*?<\/div>/g, '');
+        const dom = parser.parseFromString(cleanHtml, 'text/html');
+        
         const nodes = $generateNodesFromDOM(editor, dom);
         $getRoot().select();
         $getSelection()?.insertNodes(nodes);
@@ -91,23 +141,95 @@ const SyncPlugin = ({ onChange, onInit, initialHtml }: { onChange: (html: string
   }, [editor, initialHtml, isFirstRender]);
 
   useEffect(() => {
-    return editor.registerUpdateListener(({ editorState }) => {
-      editorState.read(() => {
-        const html = $generateHtmlFromNodes(editor, null);
-        onChange(html);
-      });
+    return editor.registerUpdateListener(({ editorState, tags }) => {
+      // Evitamos disparar onChange durante a formatação interna de paginação
+      if (!tags.has('pagination')) {
+        editorState.read(() => {
+          const html = $generateHtmlFromNodes(editor, null);
+          onChange(html);
+        });
+      }
     });
   }, [editor, onChange]);
 
   return null;
 };
 
-// Plugin de Paginação Contínua (Visual A4 Flow)
+// Plugin de Paginação Robusta (Pula Margens e Gaps)
 const PaginationPlugin = () => {
-  // Em vez de quebrar a árvore de nós (o que causa bugs no React/Lexical),
-  // O editor será uma única folha que cresce, MAS visualmente ele renderiza
-  // separadores de página a cada 297mm através de CSS, garantindo que a edição
-  // nunca trave e o texto flua perfeitamente. O backend (xhtml2pdf) lida com a quebra final.
+  const [editor] = useLexicalComposerContext();
+  
+  useEffect(() => {
+    const doPagination = () => {
+      editor.update(() => {
+        const root = $getRoot();
+        const children = root.getChildren();
+        
+        // Conversão de MM para PX (aproximadamente 3.78px/mm)
+        const MM_TO_PX = 3.779527559;
+        
+        // Configuração da Folha A4
+        const PAGE_HEIGHT = 297 * MM_TO_PX;
+        const GAP = 15 * MM_TO_PX; // 15mm de gap visual cinza
+        const CYCLE = PAGE_HEIGHT + GAP;
+        
+        const TOP_MARGIN = 25 * MM_TO_PX;
+        const BOTTOM_MARGIN = 25 * MM_TO_PX;
+        
+        // Mantemos um tracker da posição Y imaginária (border-box)
+        let currentY = TOP_MARGIN; 
+        let pageIndex = 0;
+        
+        // 1. Limpamos os spacers antigos para recalcular
+        children.forEach(c => {
+          if ($isSpacerNode(c)) c.remove();
+        });
+        
+        // 2. Obtemos apenas os blocos de conteúdo reais
+        const blocks = root.getChildren().filter(c => !$isSpacerNode(c));
+        
+        // 3. Calculamos onde o texto deve "pular"
+        blocks.forEach(child => {
+          const dom = editor.getElementByKey(child.getKey());
+          if (!dom) return;
+          
+          const height = dom.offsetHeight;
+          const style = window.getComputedStyle(dom);
+          const marginTop = parseFloat(style.marginTop) || 0;
+          const marginBottom = parseFloat(style.marginBottom) || 0;
+          
+          // Altura total do bloco
+          const totalHeight = height + Math.max(marginTop, marginBottom);
+          
+          // Fim da área útil da página atual
+          const printableBottomY = pageIndex * CYCLE + PAGE_HEIGHT - BOTTOM_MARGIN;
+          
+          // Se este bloco ultrapassa a área útil (e não é gigante a ponto de nunca caber)
+          if (currentY + totalHeight > printableBottomY && totalHeight < (PAGE_HEIGHT - TOP_MARGIN - BOTTOM_MARGIN)) {
+            // Empurramos para o início da área útil da próxima página!
+            const targetY = (pageIndex + 1) * CYCLE + TOP_MARGIN;
+            const requiredHeight = targetY - currentY;
+            
+            const spacer = $createSpacerNode(requiredHeight);
+            child.insertBefore(spacer);
+            
+            currentY = targetY + totalHeight;
+            pageIndex++;
+          } else {
+            currentY += totalHeight;
+          }
+        });
+      }, { tag: 'pagination' });
+    };
+
+    return editor.registerUpdateListener(({ tags }) => {
+      // Ignoramos updates causados por nossa própria paginação
+      if (!tags.has('pagination')) {
+        setTimeout(doPagination, 50); // Delay para o DOM renderizar os novos nós
+      }
+    });
+  }, [editor]);
+  
   return null;
 };
 
@@ -148,13 +270,11 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ content, onChange, edit
       TableCellNode,
       TableRowNode,
       AutoLinkNode,
-      LinkNode
+      LinkNode,
+      SpacerNode
     ]
   };
 
-  // O pulo do gato: CSS Background simulando as folhas A4.
-  // A folha cresce infinitamente, mas visualmente tem cortes de 297mm.
-  
   return (
     <LexicalComposer initialConfig={initialConfig}>
       <div className="border border-gray-100 rounded-2xl overflow-hidden bg-zinc-100 shadow-sm flex flex-col h-full box-border">
@@ -167,17 +287,22 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ content, onChange, edit
               style={{
                 width: '210mm',
                 minHeight: '297mm',
-                backgroundColor: 'white',
+                backgroundColor: 'transparent', 
                 boxShadow: '0 10px 30px rgba(0,0,0,0.08)',
-                padding: '25mm',
-                // A mágica: fundo repetitivo que desenha o cabeçalho e rodapé a cada 297mm
+                paddingLeft: '25mm',
+                paddingRight: '25mm',
+                paddingTop: '25mm',
+                paddingBottom: '25mm',
+                boxSizing: 'border-box',
+                backgroundOrigin: 'border-box',
+                // A mágica: Desenhamos as folhas A4 reais e injetamos o header/footer
                 backgroundImage: `
+                  linear-gradient(to bottom, white 0mm, white 297mm, transparent 297mm, transparent 312mm),
                   url("${letterhead?.header || ''}"),
-                  url("${letterhead?.footer || ''}"),
-                  linear-gradient(to bottom, transparent calc(297mm - 2px), #cbd5e1 calc(297mm - 2px), #cbd5e1 297mm)
+                  url("${letterhead?.footer || ''}")
                 `,
-                backgroundSize: '210mm 297mm, 210mm 297mm, 210mm 297mm',
-                backgroundPosition: 'top center, bottom center, top center',
+                backgroundSize: '210mm 312mm, 210mm 312mm, 210mm 312mm',
+                backgroundPosition: 'top center, center 5mm, center 272mm',
                 backgroundRepeat: 'repeat-y',
                 lineHeight: '1.6',
                 position: 'relative'
@@ -205,13 +330,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ content, onChange, edit
           .lexical-underline { text-decoration: underline; }
           .lexical-ul { list-style-type: disc; padding-left: 2em; margin-bottom: 1em; }
           .lexical-ol { list-style-type: decimal; padding-left: 2em; margin-bottom: 1em; }
-          
-          /* Linhas guias de página para o usuário saber onde a A4 termina */
-          .lexical-root-container {
-            background-image: 
-              linear-gradient(to bottom, transparent calc(297mm - 2px), #cbd5e1 calc(297mm - 2px), #cbd5e1 297mm);
-            background-size: 100% 297mm;
-          }
+          .lexical-spacer { overflow: hidden; }
         `}</style>
       </div>
     </LexicalComposer>
