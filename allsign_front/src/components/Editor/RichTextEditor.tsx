@@ -122,6 +122,8 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
           }
           .editor-ul { list-style-type: disc; padding-left: 2em; margin-bottom: 1em; }
           .editor-ol { list-style-type: decimal; padding-left: 2em; margin-bottom: 1em; }
+          .editor-ol-alpha { list-style-type: lower-alpha; }
+          .editor-ol-numeric { list-style-type: decimal; }
           .editor-listitem { margin: 0.5em 0; }
           .editor-nested-listitem { list-style-type: none; }
           .editor-link { color: #2563eb; text-decoration: underline; }

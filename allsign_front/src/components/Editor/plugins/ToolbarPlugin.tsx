@@ -59,7 +59,7 @@ const blockTypeToBlockName: Record<string, string> = {
   code: 'Código',
   h1: 'Título 1',
   h2: 'Título 2',
-  ol: 'Lista Numerada',
+  ol: 'Lista Ordenada',
   paragraph: 'Normal',
   quote: 'Citação',
   ul: 'Lista',
@@ -77,6 +77,7 @@ export default function ToolbarPlugin() {
   const [isCode, setIsCode] = useState(false);
   const [isLink, setIsLink] = useState(false);
   const [showBlockOptions, setShowBlockOptions] = useState(false);
+  const [showListOptions, setShowListOptions] = useState(false);
 
   const updateToolbar = useCallback(() => {
     const selection = $getSelection();
@@ -195,7 +196,6 @@ export default function ToolbarPlugin() {
     } else {
       editor.dispatchCommand(REMOVE_LIST_COMMAND, undefined);
     }
-    setShowBlockOptions(false);
   };
 
   const formatNumberedList = () => {
@@ -204,7 +204,29 @@ export default function ToolbarPlugin() {
     } else {
       editor.dispatchCommand(REMOVE_LIST_COMMAND, undefined);
     }
-    setShowBlockOptions(false);
+    setShowListOptions(false);
+  };
+
+  const formatAlphaList = () => {
+    editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined);
+    editor.update(() => {
+      const selection = $getSelection();
+      if ($isRangeSelection(selection)) {
+        const nodes = selection.getNodes();
+        nodes.forEach(node => {
+          const listNode = $getNearestNodeOfType(node, ListNode);
+          if (listNode && listNode.getTag() === 'ol') {
+            // Apply a class to the ListNode's DOM element for alpha styling
+            const dom = editor.getElementByKey(listNode.getKey());
+            if (dom) {
+              dom.classList.add('editor-ol-alpha');
+              dom.classList.remove('editor-ol-numeric');
+            }
+          }
+        });
+      }
+    });
+    setShowListOptions(false);
   };
 
   const formatQuote = () => {
@@ -270,14 +292,40 @@ export default function ToolbarPlugin() {
             <button onClick={formatSmallHeading} className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
               <Heading2 size={16} /> Título 2
             </button>
-            <button onClick={formatBulletList} className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
-              <List size={16} /> Lista
-            </button>
-            <button onClick={formatNumberedList} className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
-              <ListOrdered size={16} /> Lista Numerada
-            </button>
             <button onClick={formatQuote} className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
               <Quote size={16} /> Citação
+            </button>
+          </div>
+        )}
+      </div>
+
+      <div className="w-px h-6 bg-gray-200 mx-1" />
+
+      <button
+        onClick={formatBulletList}
+        className={`p-2 rounded-lg ${blockType === 'ul' ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:bg-gray-100'}`}
+        title="Lista de Pontos"
+      >
+        <List size={18} />
+      </button>
+
+      <div className="relative">
+        <button
+          onClick={() => setShowListOptions(!showListOptions)}
+          className={`p-2 rounded-lg flex items-center gap-0.5 ${blockType === 'ol' ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:bg-gray-100'}`}
+          title="Lista Ordenada"
+        >
+          <ListOrdered size={18} />
+          <ChevronDown size={12} />
+        </button>
+
+        {showListOptions && (
+          <div className="absolute top-full left-0 mt-1 w-40 bg-white border border-gray-200 rounded-xl shadow-xl z-50 py-1 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+            <button onClick={formatNumberedList} className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+              <span className="font-bold">1.</span> Numérica
+            </button>
+            <button onClick={formatAlphaList} className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+              <span className="font-bold">a.</span> Alfabética
             </button>
           </div>
         )}
