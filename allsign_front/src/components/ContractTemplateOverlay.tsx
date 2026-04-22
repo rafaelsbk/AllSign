@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Save, Info, FileText, Globe, User, Building2, HardHat, Plus, Copy } from 'lucide-react';
 import api from '../services/api';
-import RichTextEditor from './ui/RichTextEditor';
+import RichTextEditor from './Editor/RichTextEditor';
 
 interface ContractTemplateOverlayProps {
   isOpen: boolean;

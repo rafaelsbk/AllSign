@@ -240,7 +240,7 @@ const LetterheadForm: React.FC<LetterheadFormProps> = ({ isOpen, onClose, letter
               variant="solar"
               className="flex-[2] h-14 rounded-2xl font-black shadow-lg shadow-solar-orange/20"
               onClick={handleSubmit}
-              disabled={loading}
+              isDisabled={loading}
             >
               {loading ? (
                 <div className="flex items-center gap-2">
