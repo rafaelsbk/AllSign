@@ -10,6 +10,15 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@lexical/code": "^0.43.0",
+    "@lexical/html": "^0.43.0",
+    "@lexical/link": "^0.43.0",
+    "@lexical/list": "^0.43.0",
+    "@lexical/react": "^0.43.0",
+    "@lexical/rich-text": "^0.43.0",
+    "@lexical/selection": "^0.43.0",
+    "@lexical/table": "^0.43.0",
+    "@lexical/utils": "^0.43.0",
     "@tiptap/extension-bullet-list": "^3.22.4",
     "@tiptap/extension-ordered-list": "^3.22.4",
     "@tiptap/extension-table": "^3.22.3",
@@ -28,6 +37,7 @@
     "html2canvas": "^1.4.1",
     "jspdf": "^4.2.1",
     "jwt-decode": "^4.0.0",
+    "lexical": "^0.43.0",
     "lucide-react": "^1.7.0",
     "node": "^25.9.0",
     "react": "^19.2.4",

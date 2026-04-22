@@ -66,8 +66,8 @@ const ContractTemplateOverlay: React.FC<ContractTemplateOverlayProps> = ({ isOpe
   if (!isOpen) return null;
 
   const insertVariable = (variable: string) => {
-    if (editorRef.current) {
-      editorRef.current.chain().focus().insertContent(`{{ ${variable} }}`).run();
+    if (editorRef.current && editorRef.current.insertContent) {
+      editorRef.current.insertContent(`{{${variable}}}`);
     }
   };
 
