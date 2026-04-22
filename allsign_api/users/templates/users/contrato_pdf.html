@@ -14,286 +14,115 @@
                 -pdf-frame-content: header_content;
                 left: 0cm; width: 21cm;
                 top: {{ header_margin_percent|default:2.0 }}%;
-                height: 20.79mm;
+                height: 30mm;
             }
 
             @frame footer_frame {
                 -pdf-frame-content: footer_content_img;
                 left: 0cm; width: 21cm;
                 bottom: {{ footer_margin_percent|default:2.0 }}%;
-                height: 20.79mm;
-            }
-
-            @frame footer_pagenum {
-                -pdf-frame-content: footer_content;
-                bottom: 1cm;
-                margin-left: 2cm;
-                margin-right: 2cm;
-                height: 1cm;
+                height: 30mm;
             }
         }
+        
         body {
             font-family: Helvetica, sans-serif;
             font-size: 11pt;
             line-height: 1.5;
             text-align: justify;
-            color: #333;
+            color: #000;
+            width: 100%;
         }
+
+        .content {
+            width: 100%;
+            display: block;
+        }
+
+        /* Estilos para o HTML vindo do Editor Lexical */
+        h1, h2, h3 { 
+            text-align: center; 
+            text-transform: uppercase; 
+            font-weight: bold;
+            margin-bottom: 12pt;
+            margin-top: 12pt;
+            display: block;
+            width: 100%;
+        }
+        
+        p { 
+            margin-bottom: 8pt; 
+            text-align: justify;
+            display: block;
+            width: 100%;
+        }
+
+        table { 
+            width: 100%; 
+            table-layout: fixed; /* Força a distribuição proporcional das colunas */
+            border-collapse: collapse; 
+            margin-bottom: 15pt;
+            -pdf-keep-with-next: true;
+        }
+        
+        td, th { 
+            border: 1px solid #000; 
+            padding: 6px; 
+            vertical-align: top;
+            word-wrap: break-word; /* Evita que o texto empurre a largura da célula */
+        }
+        
+        th { 
+            background-color: #f2f2f2; 
+            font-weight: bold;
+        }
+
+        ul, ol {
+            margin-left: 20pt;
+            margin-bottom: 10pt;
+        }
+
+        li {
+            margin-bottom: 5pt;
+        }
+
         .text-center { text-align: center; }
         .font-bold { font-weight: bold; }
         .uppercase { text-transform: uppercase; }
         .underline { text-decoration: underline; }
-        .mb-4 { margin-bottom: 1rem; }
-        .mb-10 { margin-bottom: 2.5rem; }
-        .mt-4 { margin-top: 1rem; }
-        .mt-10 { margin-top: 2.5rem; }
-        .table { width: 100%; border-collapse: collapse; border: 1px solid #000; margin-bottom: 1rem; }
-        .table td, .table th { border: 1px solid #000; padding: 8px; vertical-align: top; }
-        .bg-gray { background-color: #f2f2f2; }
-        .page-break { page-break-after: always; }
+        
+        /* Limpeza de elementos do Lexical que não devem aparecer no PDF */
+        .lexical-spacer {
+            display: none;
+            height: 0;
+            visibility: hidden;
+        }
+
+        span.text-blue-600 { color: #000; border: none; } /* Remove cores de preview no PDF */
+        
     </style>
 </head>
 <body>
     <!-- Papel Timbrado Imagens -->
-    <div id="header_content" style="text-align: center;">
+    <div id="header_content">
         {% if header_image_path %}
-            <img src="{{ header_image_path }}" style="width: 100%; height: 20.79mm; object-fit: contain;">
+            <img src="{{ header_image_path }}" style="width: 100%; height: 25mm; object-fit: contain;">
         {% endif %}
     </div>
 
-    <div id="footer_content_img" style="text-align: center;">
+    <div id="footer_content_img">
         {% if footer_image_path %}
-            <img src="{{ footer_image_path }}" style="width: 100%; height: 20.79mm; object-fit: contain;">
+            <img src="{{ footer_image_path }}" style="width: 100%; height: 25mm; object-fit: contain;">
         {% endif %}
     </div>
 
-    <!-- PÁGINA 1 -->
-    <div class="text-center mb-10">
-        <h1 class="font-bold uppercase" style="font-size: 14pt;">INSTRUMENTO PARTICULAR DE PRESTAÇÃO DE SERVIÇOS VOLTADOS PARA INSTALAÇÃO DE SISTEMA SOLAR FOTOVOLTAICO</h1>
-        <p class="font-bold mt-4 uppercase">CONTRATO N º ON-RN-{{ contract_number }}-2025</p>
-    </div>
-
-    <section class="mb-10">
-        <h2 class="font-bold mb-4 uppercase underline">I – DA QUALIFICAÇÃO DAS PARTES:</h2>
-        <p>
-            <strong>Contratante:</strong> <span class="font-bold uppercase">{{ client_name }}</span>, {{ nationality }}, inscrito no CPF sob o nº <span class="font-bold">{{ client_cpf }}</span>, RG nº <span class="font-bold">{{ client_rg }}</span>, residente e domiciliado na Rua {{ client_street }}, nº {{ client_number }}, Bairro {{ client_neighborhood }}, Cidade {{ client_city }}, CEP {{ client_cep }}, portador do celular nº {{ client_phone }} e endereço eletrônico {{ client_email }}, de ora em diante denominado(a) de CONTRATANTE.
-        </p>
-        <p class="mt-4">
-            <strong>Contratada: SOLAR SOL ENERGIA RENOVÁVEIS LTDA</strong>, pessoa jurídica de direito privado, inscrita sob o CNPJ nº 42.518.541/0001-56, com endereço comercial na Avenida Prudente de Morais, nº 0507, Centro Empresarial Djalma Marinho, Loja A, Tirol, Natal/RN, CEP 590.20-810, neste ato representado por seu sócio, Sr. Lucas Luís de Oliveira Barbosa, portador do RG nº 2189466 e CREA nº 2119764026, de ora em diante denominada de CONTRATADA.
-        </p>
-    </section>
-
-    <!-- PÁGINA 2 -->
-    <section class="mb-10">
-        <h2 class="font-bold mb-4 uppercase underline">II – DO QUADRO RESUMO:</h2>
-        <table class="table">
-            <tr>
-                <td class="font-bold uppercase bg-gray" width="50%">VALOR DO SERVIÇO PARA SOLAR SOL ENERGIA RENOVÁVEIS LTDA</td>
-                <td><span class="font-bold">● R$ {{ service_value }}</span></td>
-            </tr>
-            <tr>
-                <td class="font-bold uppercase bg-gray">VALOR DO EQUIPAMENTO PARA OK ENERGY IMPORTAÇÃO E EXPORTAÇÃO LTDA</td>
-                <td><span class="font-bold">● R$ {{ equipment_value }}</span></td>
-            </tr>
-            <tr>
-                <td class="font-bold uppercase bg-gray">VIGÊNCIA DO CONTRATO</td>
-                <td class="font-bold uppercase">● {{ validity }}</td>
-            </tr>
-            <tr>
-                <td class="font-bold uppercase bg-gray">EQUIPAMENTOS ADQUIRIDOS</td>
-                <td class="uppercase">
-                    <p>● {{ inverter_quantity }} INVERSOR MARCA {{ inverter_brand }}</p>
-                    <p>● {{ panels_quantity }} PAINÉIS FOTOVOLTAICOS DE MARCA {{ panels_brand }}</p>
-                    <p>● KIT, CABOS CC, PARAFUSO, TRILHOS DE FIXAÇÃO DE INSTALAÇÃO</p>
-                </td>
-            </tr>
-            <tr>
-                <td class="font-bold uppercase bg-gray">DATA DE VENCIMENTO DO PAGAMENTO DO SERVIÇO</td>
-                <td class="font-bold uppercase">● {{ due_date }}</td>
-            </tr>
-            <tr>
-                <td class="font-bold uppercase bg-gray">FORMA DE PAGAMENTO</td>
-                <td class="font-bold uppercase">● {{ payment_method }}</td>
-            </tr>
-            <tr>
-                <td class="font-bold uppercase bg-gray">UNIDADES BENEFICIARIAS</td>
-                <td class="font-bold uppercase">● {{ beneficiary_units }}</td>
-            </tr>
-        </table>
-    </section>
-
-    <p>Pelo presente instrumento particular as partes, CONTRATADA e CONTRATANTE, têm entre si, certa, ajustada e contratada a PRESTAÇÃO DE SERVIÇOS voltados à instalação de sistema solar fotovoltaico, tudo subordinado às CLÁUSULAS E CONDIÇÕES adiante consignadas:</p>
-
-    <div class="page-break"></div>
-
-    <section>
-        <h2 class="font-bold mb-4 uppercase underline">III – DAS CLÁUSULAS CONTRATUAIS:</h2>
-        
-        <h3 class="font-bold uppercase">CLÁUSULA PRIMEIRA – DO OBJETO DO CONTRATO:</h3>
-        <p>O presente instrumento particular tem por objeto a prestação de serviços voltados para instalação de sistema solar fotovoltaico.</p>
-        <p class="mt-4"><strong>Parágrafo Único:</strong> para realização do serviço, a CONTRATADA orienta a aquisição dos seguintes materiais pelo (a) CONTRATANTE junto à distribuidora <strong>OK ENERGY IMPORTAÇÃO E EXPORTAÇÃO LTDA, CNPJ 27.568.657/0001-06</strong> e nome fantasia <strong>SOUENERGY</strong>. Sua sede localizada na Rua Paulo Amaral, 465, Galpão 465 - Santo Antônio, Eusebio - CE, 61.767-690, Telefone (11)4003-4343 e endereço eletrônico ecommerce@souenergy.com.br.</p>
-        
-        <div class="mt-4">
-            <p>a) {{ panels_quantity }} painéis fotovoltaicos de {{ panels_watts }} W, marca {{ panels_brand }} (garantia do fabricante {{ panels_warranty }} anos);</p>
-            <p>b) {{ inverter_quantity }} inversor de {{ inverter_k }} K, marca {{ inverter_brand }} (garantia do fabricante {{ inverter_warranty }} anos);</p>
-            <p>c) Kit parafuso, cabos cc, trilhos de fixação de instalação.</p>
-        </div>
-
-        <h3 class="font-bold uppercase mt-10">CLÁUSULA SEGUNDA – DAS OBRIGAÇÕES DA CONTRATADA:</h3>
-        <p>Cumprir integralmente esse contrato em todas as suas cláusulas, responsabilizando-se, especialmente, pela prestação dos serviços ora contratados.</p>
-        <p class="mt-4"><strong>Parágrafo Único:</strong> Ainda resta, por este contrato, obrigada a CONTRATADA a:</p>
-        <p>a) Realizar o pagamento de todos os encargos sociais e tributos previstos em lei, relacionados ao objeto deste contrato de prestação de serviço;</p>
-        <p>b) Fornecer ao(à) CONTRATANTE todos os dados e informações, quando solicitados, que se fizerem necessários ao bom entendimento e acompanhamento do serviço contratado;</p>
-        <p>c) Realizar os seguintes procedimentos junto à concessionária de energia: apresentação de projeto e acompanhamento do procedimento até sua homologação.</p>
-        <p>d) Realizar os seguintes procedimentos junto ao Conselho de Classe (CFT, CRT ou CREA): apresentação de projeto e execução da obra.</p>
-        <p>e) Planejar, conduzir e executar os serviços, com integral observância das disposições deste contrato, obedecendo aos prazos contratuais e às normas vigentes, em especial a instalação de sistema solar em capacitação calculada de acordo a expectativa de média anual dos índices de radiação;</p>
-        <p>f) Designar como responsáveis, pela direção e execução dos serviços, profissionais devidamente capacitados e qualificados para suas respectivas funções, bem como utilizar equipamentos adequados à perfeita realização dos serviços;</p>
-        <p>g) Empregar na execução dos serviços toda a mão de obra necessária, com habilidade técnica adequada ao exercício de suas atribuições, assumindo toda a responsabilidade por eventuais encargos trabalhistas, incluindo àqueles decorrentes do reconhecimento de vínculo empregatício;</p>
-        <p>h) Orientar os profissionais sob sua responsabilidade a cumprir todas as normas disciplinares e de segurança, fornecendo os Equipamentos de Proteção Individual e Coletiva e fiscalizando sua correta utilização;</p>
-
-        <div class="page-break"></div>
-
-        <h3 class="font-bold uppercase mt-10">CLÁUSULA TERCEIRA – OBRIGAÇÕES DO(A) CONTRATANTE:</h3>
-        <p>Cumprir integralmente esse contrato em todas as suas cláusulas, responsabilizando-se, especialmente, pelo pagamento da contraprestação pelos serviços ora contratados.</p>
-        <p class="mt-4"><strong>Parágrafo Único:</strong> Ainda resta, por este contrato, obrigado (a) o (a) CONTRATANTE a:</p>
-        <p>a) Responsabilizar-se pela adequação de seu PADRÃO DE ENTRADA às normas vigentes, regida pela concessionária de energia e pelos órgãos de regulamentação estadual;</p>
-        <p>b) Facilitar o acesso dos profissionais contratados ao local da obra, caso necessário;</p>
-        <p>c) Fornecer corretamente todos os dados e informações necessárias à execução dos serviços contratados, prestando assistência à CONTRATADA no cumprimento de seus deveres decorrentes deste contrato;</p>
-        <p>d) O(a) CONTRATANTE se obriga a realizar quaisquer adaptações ou obras (civil, estrutural, ampliação ou reforço) solicitadas pela CONTRATADA antes ou durante o início da obra, visando a assegurar o pleno funcionamento do sistema contratado;</p>
-        <p>e) O(a) CONTRANTE terá a obrigação de conferencia integral do seu equipamento no momento da entrega, averiguando a quantidade de itens prescritos e abertura dos volumes que outrora venham em embalagens lacradas atestando sua plena forma ou possíveis avarias no transporte se responsabilizando pela informação das devidas intercorrências em nota fiscal entregue através de transportadora definida pelo distribuidor ora escolhido pelo CONTRATANTE.</p>
-        <p>f) O(a) CONTRANTE será responsável por receber os profissionais da concessionária de energia sempre que necessário, seja para vistoria, aumento de carga, manutenção ou qualquer outro serviço relacionado.</p>
-
-        <h3 class="font-bold uppercase mt-10">CLÁUSULA QUARTA – DO PAGAMENTO:</h3>
-        <p>O(a) CONTRATANTE compromete-se a pagar à CONTRATADA, pelo presente contrato de prestação de serviços voltada para instalação de sistema solar fotovoltaico, o valor de <strong>R$ {{ service_value }} ({{ service_value_extenso }})</strong> em parcela única, por {{ payment_method }}, <strong>NÃO INCLUÍDO NESTE VALOR</strong> painéis fotovoltaicos, inversores e kit parafuso para instalação, cabos cc, trilhos de fixação de instalação;</p>
-        
-        <p class="mt-4"><strong>Parágrafo Primeiro:</strong> O(a) CONTRATANTE compromete-se a adquirir os materiais descritos nas alíneas a, b e c, Parágrafo Único da CLÁUSULA PRIMEIRA deste contrato, quais sejam, painéis fotovoltaicos, inversores, kit parafuso para instalação, cabos cc e trilhos de fixação de instalação, no valor de <strong>R$ {{ equipment_value }} ({{ equipment_value_extenso }})</strong> através de {{ payment_method }}, valor este que será pago diretamente à respectivo distribuidor OK ENERGY IMPORTAÇÃO E EXPORTAÇÃO LTDA;</p>
-        
-        <p class="mt-4"><strong>Parágrafo Segundo:</strong> O pagamento pela prestação dos serviços de instalação mencionados no caput desta cláusula será efetuado <strong>{{ due_date }}</strong>, em parcela única, através de <strong>{{ payment_method }}</strong>, diretamente nas contas abaixo indicadas:</p>
-        
-        <div class="mt-4">
-            <p>● <strong>Sicredi - 748:</strong> Agência (2207), Conta Corrente (43455-8), PIX (42.518.541/0001-56);</p>
-            <p>● <strong>Banco do Brasil - 001:</strong> Agência (1533-4), Conta Corrente (65257-1);</p>
-            <p>● <strong>Caixa Econômica Federal - 104:</strong> Agência (0759), Conta Corrente (3932-4)</p>
-            <p>● <strong>Banco Santander - 003:</strong> Agência (4667), Conta Corrente (13004130-3) PIX (allsolenergias@gmail.com);</p>
-        </div>
-
-        <div class="page-break"></div>
-
-        <p class="mt-4"><strong>Parágrafo Terceiro:</strong> Em caso de pedido de mudança de endereço, poderá haver cobrança de novos valores para instalação em nova localidade.</p>
-        <p class="mt-4"><strong>Parágrafo Quarto:</strong> O pagamento ao distribuidor dos equipamentos/materiais descritos nas alíneas a, b e c, Parágrafo Único da CLÁUSULA PRIMEIRA deste contrato, quais sejam, painéis fotovoltaicos, inversores, kit parafuso para instalação, cabos cc e trilhos de fixação de instalação etc. será efetuado na data de assinatura do presente contrato, em conta bancária de titularidade do aludido distribuidor ou por outro meio de pagamento.</p>
-
-        <h3 class="font-bold uppercase mt-10">CLÁUSULA QUINTA – DOS PRAZOS DE INSTALAÇÃO E DA HOMOLOGAÇÃO:</h3>
-        <p>O prazo de instalação dos devidos equipamentos do presente contrato é de 90 (noventa) dias iniciando-se a contagem a partir da assinatura deste contrato, acompanhado de todos os documentos necessários à confirmação da referida contratação.</p>
-        <p class="mt-4"><strong>Parágrafo Primeiro:</strong> Todas as datas e prazos contidos nas cláusulas deste contrato deverão ser contabilizados em dias úteis.</p>
-        <p class="mt-4"><strong>Parágrafo Segundo:</strong> Serão descontados do prazo mencionado no caput desta CLÁUSULA, dias chuvosos que não permitam o desenvolvimento dos trabalhos de instalação;</p>
-        <p class="mt-4"><strong>Parágrafo Terceiro:</strong> Fica convencionado entre as partes que, em caso de inexistência de medidor, medidor inadequado ou necessidade de aumento de carga para a conexão da usina fotovoltaica junto à unidade consumidora, bem como em situações de atraso ou pendências na aprovação do projeto e/ou na instalação do referido medidor por parte da concessionária de energia, o prazo previsto no caput desta Cláusula será automaticamente suspenso.</p>
-        <p class="mt-4"><strong>Parágrafo Quarto:</strong> Para que o processo de homologação do sistema solar fotovoltaico seja formalizado é indispensável que as faturas de energia da unidade geradora e compensadoras não constem débitos sem quitação.</p>
-        <p class="mt-4"><strong>Parágrafo Quinto:</strong> Havendo necessidade de aumento de carga, reforço na rede da concessionária, reforço na estrutura, pendências junto à concessionária ou qualquer outro fator que demande mais tempo para a conclusão da instalação e homologação, o prazo poderá ser estendido de acordo com as normativas da ANEEL.</p>
-        <p class="mt-4"><strong>Parágrafo Sexto:</strong> Ocorrendo alguma das situações previstas nos parágrafos anteriores, o(a) CONTRATANTE se obriga a comunicar formalmente a conclusão de quaisquer adequações necessárias.</p>
-        <p class="mt-4"><strong>Parágrafo Sétimo:</strong> Os prazos serão suspensos desde o protocolo junto à concessionária de energia até a apresentação da resposta de aprovação.</p>
-        <p class="mt-4"><strong>Parágrafo Oitavo:</strong> Com relação ao prazo exclusivo da homologação, a CONTRATADA esclarece que o processo depende exclusivamente da análise e prazos internos da concessionária de energia.</p>
-
-        <div class="page-break"></div>
-
-        <h3 class="font-bold uppercase mt-10">CLÁUSULA SEXTA – DA RESPONSABILIDADE DA CONCESSIONÁRIA:</h3>
-        <p>A CONTRATADA compromete-se a prestar o suporte necessário ao CONTRATANTE durante o processo de homologação e conexão da usina solar fotovoltaica à rede elétrica. A definição dos prazos, bem como a aprovação final para a conexão da unidade geradora, é de responsabilidade exclusiva da concessionária de energia.</p>
-        <p class="mt-4">Essa análise poderá abranger aspectos como inversão de fluxo de energia, limitações da rede elétrica, aumento de carga, necessidade de inclusão de transformador, entre outros fatores técnicos. Tais decisões são de competência exclusiva da concessionária.</p>
-
-        <h3 class="font-bold uppercase mt-10">CLÁUSULA SÉTIMA – DO RECEBIMENTO E ENCERRAMENTO DOS SERVIÇOS:</h3>
-        <p>O recebimento definitivo dos serviços deverá ser precedido de uma vistoria por parte do (a) CONTRATANTE, para que este (a) verifique e comprove a satisfatória execução de todos os serviços.</p>
-
-        <h3 class="font-bold uppercase mt-10">CLÁUSULA OITAVA – DA GERAÇÃO DE ENERGIA ELÉTRICA:</h3>
-        <p>A geração de energia do sistema fotovoltaico depende das condições climáticas, com base em dados oficiais do Centro de Referência para Energia solar e eólica e Instituto Nacional de Pesquisas Espaciais.</p>
-        <p class="mt-4"><strong>Parágrafo Primeiro:</strong> Registre-se que a geração de energia é feita de acordo com a média base calculada de acordo com as contas apresentadas.</p>
-        <p class="mt-4"><strong>Parágrafo Segundo:</strong> Caso haja compensação de energia em mais de um local, é necessário que o (a) CONTRATANTE solicite conexão junto à concessionária de energia, sendo objeto de compensação as contas <strong>{{ beneficiary_units }}</strong>.</p>
-        <p class="mt-4"><strong>Parágrafo Terceiro:</strong> O endereço da instalação dos painéis será compensado de forma primária e a(s) unidade(s) secundária(s) somente serão compensadas após total satisfação da geração da unidade de instalação.</p>
-        <p class="mt-4"><strong>Parágrafo Quarto:</strong> Caso o(a) CONTRATANTE solicite a inserção de uma conta contrato após a homologação, será cobrado um valor adicional de R$ 250,00.</p>
-        <p class="mt-4"><strong>Parágrafo Quinto:</strong> Existindo a necessidade de ajustes na potência de painéis e inversores, poderão as partes optar pela substituição via aditivo contratual.</p>
-        <p class="mt-4"><strong>Parágrafo Sexto:</strong> O sistema de energia solar depende de fatores naturais e aspectos específicos do imóvel. O CONTRATANTE está ciente de que a geração de energia pode sofrer variações.</p>
-
-        <div class="page-break"></div>
-
-        <h3 class="font-bold uppercase mt-10">CLÁUSULA NONA – DO MONITORAMENTO:</h3>
-        <p>Para conexão e acompanhamento remoto do sistema via aplicativo se faz necessária a utilização da rede de dados móveis, com internet WI-FI 2,4GHZ, a qual é de responsabilidade da parte CONTRATANTE.</p>
-        <p class="mt-4"><strong>Parágrafo Primeiro:</strong> Caso não haja conexão de internet no dia da instalação, poderá a CONTRATADA atribuir custos relativos à visita posterior.</p>
-        <p class="mt-4"><strong>Parágrafo Segundo:</strong> Em caso de alteração de senha da internet, o CONTRATANTE precisará informar à CONTRATADA.</p>
-        <p class="mt-4"><strong>Parágrafo Terceiro:</strong> Visitas técnicas para reconfiguração do sistema por culpa do cliente terão taxa adicional de R$ 250,00.</p>
-        <p class="mt-4"><strong>Parágrafo Quarto:</strong> O acompanhamento remoto é ferramenta indispensável para averiguar falhas e adotar providências.</p>
-
-        <h3 class="font-bold uppercase mt-10">CLÁUSULA DÉCIMA – DA GARANTIA:</h3>
-        <p>A CONTRATADA garante a qualidade e perfeição da execução do serviço de mão de obra pelo período de 12 meses.</p>
-        <p class="mt-4"><strong>Parágrafo Primeiro:</strong> O(a) CONTRATANTE declara-se ciente de que os painéis e inversores contam com garantias ofertadas pelos fabricantes.</p>
-        <p class="mt-4"><strong>Parágrafo Segundo:</strong> Após o vencimento da garantia de instalação (12 meses), a garantia dos equipamentos deverá ser tratada diretamente com o fabricante.</p>
-        <p class="mt-4"><strong>Parágrafo Terceiro:</strong> A realização de qualquer serviço por terceiros dentro do prazo de 12 meses resultará na perda total da garantia de instalação.</p>
-        <p class="mt-4"><strong>Parágrafo Quarto:</strong> Após 12 meses, a CONTRATADA não terá qualquer obrigação referente à instalação e homologação, salvo novo contrato específico.</p>
-
-        <h3 class="font-bold uppercase mt-10">CLÁUSULA DÉCIMA PRIMEIRA – DA CONFIDENCIALIDADE:</h3>
-        <p>Toda e qualquer informação trocada será considerada estritamente confidencial.</p>
-        <p class="mt-4"><strong>Parágrafo Único:</strong> As partes obrigam-se a respeitar a Lei Geral sobre Proteção de Dados Pessoais (LGPD).</p>
-
-        <div class="page-break"></div>
-
-        <h3 class="font-bold uppercase mt-10">CLÁUSULA DÉCIMA SEGUNDA – DAS DISPOSIÇÕES GERAIS:</h3>
-        <p>a) A CONTRATADA não se responsabiliza por atrasos da concessionária, mas se compromete a cobrar o andamento.</p>
-        <p>b) O regime de compensação é de responsabilidade exclusiva da ANEEL.</p>
-        <p>c) Este instrumento substitui todas as outras comunicações anteriores.</p>
-        <p>d) Qualquer alteração deverá ser realizada por escrito e assinada por ambas as partes.</p>
-        <p>e) Existindo conflito entre o contrato e anexos, prevalecerão as condições deste contrato.</p>
-        <p>f) As cláusulas deverão ser interpretadas com base nos princípios de probidade e boa-fé.</p>
-        <p>g) A nulidade de uma disposição não prejudica as demais.</p>
-        <p>h) Não há relação de agência, representação ou parceria entre as partes.</p>
-        <p>i) O contrato é celebrado em caráter irrevogável e irretratável.</p>
-        <p>j) Os direitos não podem ser cedidos sem consentimento prévio por escrito.</p>
-        <p>k) A tolerância em relação a infrações não importa em renúncia a direitos.</p>
-        <p>l) Alterações de endereço devem ser informadas imediatamente.</p>
-        <p>m) O contrato constitui título executivo extrajudicial (Art. 784, III, CPC).</p>
-
-        <div class="page-break"></div>
-
-        <h3 class="font-bold uppercase mt-10">CLÁUSULA DÉCIMA TERCEIRA – DA RESCISÃO:</h3>
-        <p>O presente Contrato poderá ser rescindido por justa causa em casos de falência, violação de obrigações não sanadas em 20 dias, violação de sigilo ou uso inadequado de marca.</p>
-        <p class="mt-4"><strong>Parágrafo Primeiro:</strong> Resilição unilateral sujeita a parte que deu causa ao pagamento de multa de 50% do valor do contrato.</p>
-        <p class="mt-4"><strong>Parágrafo Segundo:</strong> Rescisão por justa causa obriga o ressarcimento de perdas e danos mais multa de 20% do valor do contrato.</p>
-        <p class="mt-4"><strong>Parágrafo Terceiro:</strong> Desistência pelo contratante antes da instalação: multa de 30% sobre o valor dos serviços.</p>
-        <p class="mt-4"><strong>Parágrafo Quarto:</strong> Desistência durante ou após a instalação: multa de 80% sobre o valor dos serviços.</p>
-
-        <h3 class="font-bold uppercase mt-10">CLÁUSULA DÉCIMA QUARTA – DO FORO:</h3>
-        <p>Fica eleito o foro de NATAL/RN para dirimir quaisquer dúvidas oriundas deste instrumento.</p>
-    </section>
-
-    <div class="mt-10">
-        <p>E, por estarem justas e contratadas, as partes assinam este contrato, em 02 (duas) vias de igual teor e forma, juntamente com as testemunhas abaixo.</p>
-        <p class="text-center mt-10 font-bold uppercase">NATAL/RN, {{ date_day }} DE {{ date_month }} DE {{ date_year }}.</p>
-    </div>
-
-    <div class="mt-10">
-        <table style="width: 100%; margin-top: 50px; border: none;">
-            <tr>
-                <td style="width: 45%; border: none; border-top: 1px solid #000; text-align: center;">
-                    <p class="font-bold uppercase">{{ client_name }}</p>
-                    <p>CPF: {{ client_cpf }}</p>
-                    <p class="font-bold">CONTRATANTE</p>
-                </td>
-                <td style="width: 10%; border: none;"></td>
-                <td style="width: 45%; border: none; border-top: 1px solid #000; text-align: center;">
-                    <p class="font-bold uppercase">SOLAR SOL ENERGIA RENOVÁVEIS LTDA</p>
-                    <p>CNPJ: 42.518.541/0001-56</p>
-                    <p class="font-bold">CONTRATADA</p>
-                </td>
-            </tr>
-        </table>
-
-        <table style="width: 100%; margin-top: 80px; border: none;">
-            <tr>
-                <td style="width: 45%; border: none; border-top: 1px solid #000; text-align: center;">
-                    <p class="font-bold">TESTEMUNHA</p>
-                </td>
-                <td style="width: 10%; border: none;"></td>
-                <td style="width: 45%; border: none; border-top: 1px solid #000; text-align: center;">
-                    <p class="font-bold">TESTEMUNHA</p>
-                </td>
-            </tr>
-        </table>
+    <!-- CONTEÚDO DINÂMICO DO EDITOR -->
+    <div className="content">
+        {% if html_content %}
+            {{ html_content|safe }}
+        {% else %}
+            <p style="color: red; text-align: center;">Erro: Conteúdo do contrato não encontrado.</p>
+        {% endif %}
     </div>
 
 </body>

@@ -61,7 +61,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
 
   return (
     <LexicalComposer initialConfig={initialConfig}>
-      <div className="border border-gray-100 rounded-2xl overflow-hidden bg-zinc-100 shadow-sm flex flex-col h-full box-border">
+      <div className="border border-gray-100 rounded-2xl bg-zinc-100 shadow-sm flex flex-col h-full box-border relative">
         {editable && <ToolbarPlugin />}
         
         <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-[#f1f5f9] custom-scrollbar scroll-smooth">
@@ -122,8 +122,10 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
           }
           .editor-ul { list-style-type: disc; padding-left: 2em; margin-bottom: 1em; }
           .editor-ol { list-style-type: decimal; padding-left: 2em; margin-bottom: 1em; }
-          .editor-ol-alpha { list-style-type: lower-alpha; }
-          .editor-ol-numeric { list-style-type: decimal; }
+          .editor-ol[style*="list-style-type: lower-alpha"] { list-style-type: lower-alpha !important; }
+          .editor-ol[style*="list-style-type: decimal"] { list-style-type: decimal !important; }
+          .editor-ol-alpha { list-style-type: lower-alpha !important; }
+          .editor-ol-numeric { list-style-type: decimal !important; }
           .editor-listitem { margin: 0.5em 0; }
           .editor-nested-listitem { list-style-type: none; }
           .editor-link { color: #2563eb; text-decoration: underline; }

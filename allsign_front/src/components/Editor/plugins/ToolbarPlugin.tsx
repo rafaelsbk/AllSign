@@ -201,31 +201,41 @@ export default function ToolbarPlugin() {
   const formatNumberedList = () => {
     if (blockType !== 'ol') {
       editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined);
-    } else {
-      editor.dispatchCommand(REMOVE_LIST_COMMAND, undefined);
     }
+    
+    setTimeout(() => {
+      editor.update(() => {
+        const selection = $getSelection();
+        if ($isRangeSelection(selection)) {
+          const anchorNode = selection.anchor.getNode();
+          const listNode = $getNearestNodeOfType(anchorNode, ListNode);
+          if (listNode && listNode.getTag() === 'ol') {
+            listNode.setStyle('list-style-type: decimal');
+          }
+        }
+      });
+    }, 0);
     setShowListOptions(false);
   };
 
   const formatAlphaList = () => {
-    editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined);
-    editor.update(() => {
-      const selection = $getSelection();
-      if ($isRangeSelection(selection)) {
-        const nodes = selection.getNodes();
-        nodes.forEach(node => {
-          const listNode = $getNearestNodeOfType(node, ListNode);
+    if (blockType !== 'ol') {
+      editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined);
+    }
+    
+    // Wait for the command to finish and the ListNode to be created
+    setTimeout(() => {
+      editor.update(() => {
+        const selection = $getSelection();
+        if ($isRangeSelection(selection)) {
+          const anchorNode = selection.anchor.getNode();
+          const listNode = $getNearestNodeOfType(anchorNode, ListNode);
           if (listNode && listNode.getTag() === 'ol') {
-            // Apply a class to the ListNode's DOM element for alpha styling
-            const dom = editor.getElementByKey(listNode.getKey());
-            if (dom) {
-              dom.classList.add('editor-ol-alpha');
-              dom.classList.remove('editor-ol-numeric');
-            }
+            listNode.setStyle('list-style-type: lower-alpha');
           }
-        });
-      }
-    });
+        }
+      });
+    }, 0);
     setShowListOptions(false);
   };
 
@@ -250,7 +260,7 @@ export default function ToolbarPlugin() {
   }, [editor, isLink]);
 
   return (
-    <div className="flex flex-wrap items-center gap-1 p-2 border-b border-gray-200 bg-white/95 sticky top-0 z-50 backdrop-blur-md shadow-sm no-print">
+    <div className="flex flex-wrap items-center gap-1 p-2 border-b border-zinc-200 bg-white/80 sticky top-0 z-[100] backdrop-blur-md shadow-sm no-print w-full">
       <button
         disabled={!canUndo}
         onClick={() => editor.dispatchCommand(UNDO_COMMAND, undefined)}

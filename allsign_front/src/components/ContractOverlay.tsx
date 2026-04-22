@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { X, Save, FileDown, Info, Type, ClipboardList } from 'lucide-react';
 import api from '../services/api';
+import RichTextEditor from './Editor/RichTextEditor';
 
 interface ContractOverlayProps {
   isOpen: boolean;
@@ -15,11 +16,45 @@ const ContractOverlay: React.FC<ContractOverlayProps> = ({ isOpen, onClose, clie
   const [templates, setTemplates] = useState<any[]>([]);
   const [selectedTemplateId, setSelectedTemplateId] = useState('');
   const [currentTemplate, setCurrentTemplate] = useState<any>(null);
+  const [selectedLetterheadId, setSelectedLetterheadId] = useState('none');
   const [variablesData, setVariablesData] = useState<Record<string, string>>({});
+  const [htmlContent, setHtmlContent] = useState('');
   const [loading, setLoading] = useState(false);
   const [isTemplateLoading, setIsTemplateLoading] = useState(false);
+  
+  const [letterheadTemplates, setLetterheadTemplates] = useState<any[]>([
+    { id: 'none', name: 'Nenhum (Branco)', header_image: '', footer_image: '' }
+  ]);
 
-  // 1. Busca modelos disponíveis
+  const editorRef = useRef<any>(null);
+
+  // 1. Busca modelos e papéis timbrados
+  const fetchLetterheads = async () => {
+    try {
+      const response = await api.get('users/letterheads/');
+      const data = Array.isArray(response.data) ? response.data : response.data.results;
+      const baseUrl = api.defaults.baseURL?.replace('/api', '') || 'http://localhost:8000';
+      const getFullUrl = (path: string) => {
+        if (!path) return '';
+        if (path.startsWith('http')) return path;
+        return `${baseUrl}${path.startsWith('/') ? path : `/${path}`}`;
+      };
+
+      const processedData = (data || []).map((lh: any) => ({
+        ...lh,
+        header_image: getFullUrl(lh.header_image),
+        footer_image: getFullUrl(lh.footer_image),
+      }));
+
+      setLetterheadTemplates([
+        { id: 'none', name: 'Nenhum (Branco)', header_image: '', footer_image: '' },
+        ...processedData
+      ]);
+    } catch (err) {
+      console.error('Erro ao buscar papéis timbrados:', err);
+    }
+  };
+
   useEffect(() => {
     const fetchTemplates = async () => {
       try {
@@ -30,8 +65,15 @@ const ContractOverlay: React.FC<ContractOverlayProps> = ({ isOpen, onClose, clie
         console.error('Erro ao buscar formas:', err);
       }
     };
-    if (isOpen) fetchTemplates();
+    if (isOpen) {
+      fetchTemplates();
+      fetchLetterheads();
+    }
   }, [isOpen]);
+
+  const currentLetterhead = useMemo(() => {
+    return letterheadTemplates.find(t => String(t.id) === String(selectedLetterheadId)) || letterheadTemplates[0];
+  }, [selectedLetterheadId, letterheadTemplates]);
 
   // 2. Extrai variáveis do HTML do modelo
   const detectedVariables = useMemo(() => {
@@ -49,6 +91,7 @@ const ContractOverlay: React.FC<ContractOverlayProps> = ({ isOpen, onClose, clie
     setSelectedTemplateId(id);
     if (!id) {
       setCurrentTemplate(null);
+      setHtmlContent('');
       return;
     }
 
@@ -57,6 +100,11 @@ const ContractOverlay: React.FC<ContractOverlayProps> = ({ isOpen, onClose, clie
       const response = await api.get(`/users/templates/${id}/`);
       const template = response.data;
       setCurrentTemplate(template);
+      
+      // Auto-seleciona o papel timbrado do modelo, se houver
+      if (template.content?.letterhead_id) {
+        setSelectedLetterheadId(String(template.content.letterhead_id));
+      }
 
       const clientMap: Record<string, string> = {
         client_name: client?.name || '',
@@ -75,9 +123,17 @@ const ContractOverlay: React.FC<ContractOverlayProps> = ({ isOpen, onClose, clie
       const matches = (template.content.html_content || '').matchAll(/\{\{\s*(\w+)\s*\}\}/g);
       for (const match of matches) {
         const v = match[1];
-        initialData[v] = variablesData[v] || clientMap[v] || '';
+        initialData[v] = clientMap[v] || '';
       }
-      setVariablesData(prev => ({ ...clientMap, ...prev, ...initialData }));
+      
+      const newVars = { ...clientMap, ...initialData };
+      setVariablesData(newVars);
+
+      // Resolve o HTML inicial para o editor
+      const resolved = (template.content.html_content || '').replace(/\{\{\s*(\w+)\s*\}\}/g, (_, key) => {
+        return newVars[key] || `[${key.replace(/_/g, ' ')}]`;
+      });
+      setHtmlContent(resolved);
 
     } catch (err) {
       console.error('Erro ao carregar forma:', err);
@@ -86,15 +142,15 @@ const ContractOverlay: React.FC<ContractOverlayProps> = ({ isOpen, onClose, clie
     }
   };
 
-  // 4. Resolve variáveis para o preview visual
-  const resolveHTML = (html: string) => {
-    if (!html) return '';
-    return html.replace(/\{\{\s*(\w+)\s*\}\}/g, (_, key) => {
-      const val = variablesData[key];
-      if (val) return `<span class="text-blue-600 font-bold border-b border-blue-200">${val}</span>`;
-      return `<span class="bg-amber-100 text-amber-700 font-bold px-1 rounded border border-amber-200">[${key.replace(/_/g, ' ')}]</span>`;
-    });
-  };
+  // 4. Efeito para atualizar o editor quando as variáveis mudarem no painel lateral
+  useEffect(() => {
+    if (currentTemplate && !isViewOnly) {
+       const resolved = (currentTemplate.content.html_content || '').replace(/\{\{\s*(\w+)\s*\}\}/g, (_, key) => {
+         return variablesData[key] || `[${key.replace(/_/g, ' ')}]`;
+       });
+       setHtmlContent(resolved);
+    }
+  }, [variablesData, currentTemplate, isViewOnly]);
 
   const handleSave = async () => {
     if (!currentTemplate) return;
@@ -106,12 +162,11 @@ const ContractOverlay: React.FC<ContractOverlayProps> = ({ isOpen, onClose, clie
         service_value: parseFloat(variablesData.service_value?.replace(/[^\d,]/g, '').replace(',', '.')) || 0,
         equipment_value: parseFloat(variablesData.equipment_value?.replace(/[^\d,]/g, '').replace(',', '.')) || 0,
         contract_date: variablesData.contract_date || new Date().toISOString().split('T')[0],
-        extra_data: variablesData,
-        // Informação técnica básica para compatibilidade com o model antigo
-        inverter_brand: variablesData.inverter_brand || '',
-        inverter_quantity: parseInt(variablesData.inverter_quantity) || 0,
-        panels_brand: variablesData.panels_brand || '',
-        panels_quantity: parseInt(variablesData.panels_quantity) || 0,
+        extra_data: {
+          ...variablesData,
+          final_html: htmlContent,
+          letterhead_id: selectedLetterheadId !== 'none' ? selectedLetterheadId : null
+        }
       };
 
       if (contract?.id) {
@@ -132,11 +187,14 @@ const ContractOverlay: React.FC<ContractOverlayProps> = ({ isOpen, onClose, clie
   const handleGeneratePDF = async () => {
     setLoading(true);
     try {
-      const resolvedHtml = (currentTemplate.content.html_content || '').replace(/\{\{\s*(\w+)\s*\}\}/g, (_: string, key: string) => variablesData[key] || '_______');
+      // Limpeza final de spacers antes de enviar para o PDF
+      const cleanHtml = htmlContent.replace(/<div[^>]*class="lexical-spacer"[^>]*>.*?<\/div>/g, '');
+      
       const payload = {
         client_name: client?.name,
-        html_content: resolvedHtml,
-        doc_title: currentTemplate.name.toUpperCase()
+        html_content: cleanHtml,
+        doc_title: currentTemplate?.name?.toUpperCase() || 'CONTRATO',
+        letterhead_id: selectedLetterheadId !== 'none' ? selectedLetterheadId : null
       };
       const response = await api.post('/users/contracts/generate-pdf/', payload, { responseType: 'blob' });
       const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -174,7 +232,7 @@ const ContractOverlay: React.FC<ContractOverlayProps> = ({ isOpen, onClose, clie
             <div className="flex items-center gap-2 bg-gray-50 p-2 rounded-xl border border-gray-100">
               <label className="text-[10px] font-black text-gray-400 uppercase px-2">Modelo:</label>
               <select 
-                className="bg-transparent text-sm font-bold outline-none min-w-[250px]"
+                className="bg-transparent text-sm font-bold outline-none min-w-[200px]"
                 value={selectedTemplateId}
                 onChange={(e) => handleTemplateChange(e.target.value)}
                 disabled={isTemplateLoading || isViewOnly}
@@ -183,6 +241,19 @@ const ContractOverlay: React.FC<ContractOverlayProps> = ({ isOpen, onClose, clie
                 {templates.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
               </select>
             </div>
+
+            <div className="flex items-center gap-2 bg-gray-50 p-2 rounded-xl border border-gray-100">
+              <label className="text-[10px] font-black text-gray-400 uppercase px-2">Papel Timbrado:</label>
+              <select 
+                className="bg-transparent text-sm font-bold outline-none min-w-[180px]"
+                value={selectedLetterheadId}
+                onChange={(e) => setSelectedLetterheadId(e.target.value)}
+                disabled={isViewOnly}
+              >
+                {letterheadTemplates.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+              </select>
+            </div>
+
             <button onClick={onClose} className="p-2 hover:bg-red-50 text-gray-400 hover:text-red-500 rounded-full transition-all">
               <X size={28} />
             </button>
@@ -228,19 +299,24 @@ const ContractOverlay: React.FC<ContractOverlayProps> = ({ isOpen, onClose, clie
             </div>
           </div>
 
-          {/* PREVIEW DO CONTRATO (ESQUERDA) */}
-          <div className="flex-1 bg-zinc-100 overflow-y-auto p-4 md:p-12 relative order-1 md:order-2">
+          {/* PREVIEW DO CONTRATO (ESQUERDA) - AGORA COM EDITOR */}
+          <div className="flex-1 bg-zinc-100 overflow-hidden relative order-1 md:order-2 flex flex-col">
             {!currentTemplate ? (
               <div className="absolute inset-0 flex items-center justify-center opacity-5">
                 <h1 className="text-[120px] font-black rotate-[-15deg] select-none uppercase">Aguardando</h1>
               </div>
             ) : (
-              <div className="bg-white text-zinc-900 p-10 md:p-20 shadow-2xl rounded-sm font-serif leading-relaxed text-[15px] mx-auto max-w-[210mm] min-h-[297mm] animate-in zoom-in-95 duration-500">
-                 {/* Aqui renderizamos o HTML resolvido */}
-                 <div 
-                    className="prose max-w-none text-justify"
-                    dangerouslySetInnerHTML={{ __html: resolveHTML(currentTemplate.content.html_content) }} 
-                 />
+              <div className="flex-1 overflow-hidden p-4">
+                  <RichTextEditor 
+                    content={htmlContent}
+                    onChange={setHtmlContent}
+                    editable={!isViewOnly}
+                    onInit={(api) => editorRef.current = api}
+                    letterhead={{ 
+                      header: currentLetterhead.header_image, 
+                      footer: currentLetterhead.footer_image 
+                    }}
+                  />
               </div>
             )}
           </div>
@@ -271,13 +347,6 @@ const ContractOverlay: React.FC<ContractOverlayProps> = ({ isOpen, onClose, clie
           )}
         </div>
       </div>
-
-      <style>{`
-        .prose h1, .prose h2, .prose h3 { text-align: center; text-transform: uppercase; margin-bottom: 2rem; }
-        .prose p { margin-bottom: 1rem; line-height: 1.6; }
-        .prose table { width: 100%; border-collapse: collapse; border: 1px solid #000; margin: 1.5rem 0; }
-        .prose td, .prose th { border: 1px solid #000; padding: 8px; }
-      `}</style>
     </div>
   );
 };

@@ -211,23 +211,27 @@ const ContractList = () => {
         </Button>
       </div>
 
-      <ContractOverlay
-        isOpen={isContractOpen}
-        onClose={() => setIsContractOpen(false)}
-        client={contractClient}
-        contract={selectedContract}
-        isViewOnly={isViewOnly}
-        onSuccess={() => {
-          showToast(selectedContract ? 'Contrato atualizado!' : 'Contrato gerado!', 'success');
-          fetchContracts(1, true);
-        }}
-      />
+      {isContractOpen && (
+        <ContractOverlay
+          isOpen={isContractOpen}
+          onClose={() => setIsContractOpen(false)}
+          client={contractClient}
+          contract={selectedContract}
+          isViewOnly={isViewOnly}
+          onSuccess={() => {
+            showToast(selectedContract ? 'Contrato atualizado!' : 'Contrato gerado!', 'success');
+            fetchContracts(1, true);
+          }}
+        />
+      )}
 
-      <ClientSelectionModal
-        isOpen={isClientSelectionOpen}
-        onClose={() => setIsClientSelectionOpen(false)}
-        onSelect={handleClientSelect}
-      />
+      {isClientSelectionOpen && (
+        <ClientSelectionModal
+          isOpen={isClientSelectionOpen}
+          onClose={() => setIsClientSelectionOpen(false)}
+          onSelect={handleClientSelect}
+        />
+      )}
     </div>
   );
 };
