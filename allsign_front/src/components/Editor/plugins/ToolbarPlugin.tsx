@@ -207,14 +207,44 @@ export default function ToolbarPlugin() {
       editor.update(() => {
         const selection = $getSelection();
         if ($isRangeSelection(selection)) {
-          const anchorNode = selection.anchor.getNode();
-          const listNode = $getNearestNodeOfType(anchorNode, ListNode);
-          if (listNode && listNode.getTag() === 'ol') {
-            listNode.setStyle('list-style-type: decimal');
+          const nodes = selection.getNodes();
+          const listNodes = new Set<ListNode>();
+          
+          nodes.forEach(node => {
+            let parent = node;
+            while (parent !== null) {
+              if ($isListNode(parent) && parent.getTag() === 'ol') {
+                listNodes.add(parent);
+                break;
+              }
+              parent = parent.getParent();
+            }
+          });
+
+          if (listNodes.size === 0) {
+            const anchorNode = selection.anchor.getNode();
+            let parent = anchorNode;
+            while (parent !== null) {
+              if ($isListNode(parent) && parent.getTag() === 'ol') {
+                listNodes.add(parent);
+                break;
+              }
+              parent = parent.getParent();
+            }
           }
+
+          listNodes.forEach(ln => {
+            // Remove classe alpha se houver e adiciona decimal
+            const element = editor.getElementByKey(ln.getKey());
+            if (element) {
+              element.classList.remove('list-alpha');
+              element.classList.add('list-decimal');
+            }
+            ln.setStyle('list-style-type: decimal');
+          });
         }
       });
-    }, 0);
+    }, 150);
     setShowListOptions(false);
   };
 
@@ -223,19 +253,98 @@ export default function ToolbarPlugin() {
       editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined);
     }
     
-    // Wait for the command to finish and the ListNode to be created
     setTimeout(() => {
       editor.update(() => {
         const selection = $getSelection();
         if ($isRangeSelection(selection)) {
-          const anchorNode = selection.anchor.getNode();
-          const listNode = $getNearestNodeOfType(anchorNode, ListNode);
-          if (listNode && listNode.getTag() === 'ol') {
-            listNode.setStyle('list-style-type: lower-alpha');
+          const nodes = selection.getNodes();
+          const listNodes = new Set<ListNode>();
+          
+          nodes.forEach(node => {
+            let parent = node;
+            while (parent !== null) {
+              if ($isListNode(parent) && parent.getTag() === 'ol') {
+                listNodes.add(parent);
+                break;
+              }
+              parent = parent.getParent();
+            }
+          });
+
+          if (listNodes.size === 0) {
+            const anchorNode = selection.anchor.getNode();
+            let parent = anchorNode;
+            while (parent !== null) {
+              if ($isListNode(parent) && parent.getTag() === 'ol') {
+                listNodes.add(parent);
+                break;
+              }
+              parent = parent.getParent();
+            }
           }
+
+          listNodes.forEach(ln => {
+            // Remove classe decimal se houver e adiciona alpha
+            const element = editor.getElementByKey(ln.getKey());
+            if (element) {
+              element.classList.remove('list-decimal', 'list-disc');
+              element.classList.add('list-alpha');
+            }
+            ln.setStyle('list-style-type: lower-alpha');
+          });
         }
       });
-    }, 0);
+    }, 150);
+    setShowListOptions(false);
+  };
+
+  const formatDiscList = () => {
+    if (blockType !== 'ol') {
+      editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined);
+    }
+    
+    setTimeout(() => {
+      editor.update(() => {
+        const selection = $getSelection();
+        if ($isRangeSelection(selection)) {
+          const nodes = selection.getNodes();
+          const listNodes = new Set<ListNode>();
+          
+          nodes.forEach(node => {
+            let parent = node;
+            while (parent !== null) {
+              if ($isListNode(parent) && parent.getTag() === 'ol') {
+                listNodes.add(parent);
+                break;
+              }
+              parent = parent.getParent();
+            }
+          });
+
+          if (listNodes.size === 0) {
+            const anchorNode = selection.anchor.getNode();
+            let parent = anchorNode;
+            while (parent !== null) {
+              if ($isListNode(parent) && parent.getTag() === 'ol') {
+                listNodes.add(parent);
+                break;
+              }
+              parent = parent.getParent();
+            }
+          }
+
+          listNodes.forEach(ln => {
+            // Remove classes anteriores e adiciona disc
+            const element = editor.getElementByKey(ln.getKey());
+            if (element) {
+              element.classList.remove('list-decimal', 'list-alpha');
+              element.classList.add('list-disc');
+            }
+            ln.setStyle('list-style-type: disc');
+          });
+        }
+      });
+    }, 150);
     setShowListOptions(false);
   };
 
@@ -336,6 +445,9 @@ export default function ToolbarPlugin() {
             </button>
             <button onClick={formatAlphaList} className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
               <span className="font-bold">a.</span> Alfabética
+            </button>
+            <button onClick={formatDiscList} className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+              <span className="font-bold">•</span> Pontos
             </button>
           </div>
         )}

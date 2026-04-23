@@ -120,12 +120,48 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
             border-radius: 4px; 
             font-family: monospace; 
           }
-          .editor-ul { list-style-type: disc; padding-left: 2em; margin-bottom: 1em; }
-          .editor-ol { list-style-type: decimal; padding-left: 2em; margin-bottom: 1em; }
-          .editor-ol[style*="list-style-type: lower-alpha"] { list-style-type: lower-alpha !important; }
-          .editor-ol[style*="list-style-type: decimal"] { list-style-type: decimal !important; }
-          .editor-ol-alpha { list-style-type: lower-alpha !important; }
-          .editor-ol-numeric { list-style-type: decimal !important; }
+          /* Reset e Base para Listas no Editor */
+          .lexical-root-container ul,
+          .lexical-root-container ol {
+            padding-left: 2.5rem !important;
+            margin-bottom: 1rem !important;
+            display: block !important;
+          }
+
+          .lexical-root-container li {
+            display: list-item !important;
+            list-style-position: outside !important;
+          }
+
+          /* Classes Específicas para Controle de Marcador */
+          .list-alpha { 
+            list-style-type: lower-alpha !important; 
+          }
+          .list-alpha li { 
+            list-style-type: lower-alpha !important; 
+          }
+
+          .list-decimal { 
+            list-style-type: decimal !important; 
+          }
+          .list-decimal li { 
+            list-style-type: decimal !important; 
+          }
+
+          .list-disc { 
+            list-style-type: disc !important; 
+          }
+          .list-disc li { 
+            list-style-type: disc !important; 
+          }
+
+          /* Fallbacks baseados no atributo style (segurança extra) */
+          ol[style*="lower-alpha"] { list-style-type: lower-alpha !important; }
+          ol[style*="lower-alpha"] li { list-style-type: lower-alpha !important; }
+          ol[style*="decimal"] { list-style-type: decimal !important; }
+          ol[style*="decimal"] li { list-style-type: decimal !important; }
+          ol[style*="disc"] { list-style-type: disc !important; }
+          ol[style*="disc"] li { list-style-type: disc !important; }
           .editor-listitem { margin: 0.5em 0; }
           .editor-nested-listitem { list-style-type: none; }
           .editor-link { color: #2563eb; text-decoration: underline; }
