@@ -1,7 +1,7 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { $generateHtmlFromNodes, $generateNodesFromDOM } from '@lexical/html';
 import { $getRoot, $getSelection, $isRangeSelection, ParagraphNode } from 'lexical';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef } from 'react';
 
 interface SyncPluginProps {
   onChange: (html: string) => void;
@@ -11,7 +11,7 @@ interface SyncPluginProps {
 
 const SyncPlugin = ({ onChange, onInit, initialHtml }: SyncPluginProps) => {
   const [editor] = useLexicalComposerContext();
-  const [isFirstRender, setIsFirstRender] = useState(true);
+  const hasInitialized = useRef(false);
 
   useEffect(() => {
     if (onInit) {
@@ -34,18 +34,23 @@ const SyncPlugin = ({ onChange, onInit, initialHtml }: SyncPluginProps) => {
   }, [editor, onInit]);
 
   useEffect(() => {
-    if (isFirstRender && initialHtml) {
+    if (!hasInitialized.current && initialHtml) {
       editor.update(() => {
+        const root = $getRoot();
         const parser = new DOMParser();
-        const cleanHtml = initialHtml.replace(/<div class="lexical-spacer.*?<\/div>/g, '');
+        const cleanHtml = initialHtml.trim().replace(/<div class="lexical-spacer.*?<\/div>/g, '');
+        
+        if (!cleanHtml) return;
+
         const dom = parser.parseFromString(cleanHtml, 'text/html');
         const nodes = $generateNodesFromDOM(editor, dom);
-        $getRoot().select();
-        $getSelection()?.insertNodes(nodes);
+        
+        root.clear();
+        root.append(...nodes);
+        hasInitialized.current = true;
       });
-      setIsFirstRender(false);
     }
-  }, [editor, initialHtml, isFirstRender]);
+  }, [editor, initialHtml]);
 
   useEffect(() => {
     return editor.registerUpdateListener(({ editorState, tags }) => {
