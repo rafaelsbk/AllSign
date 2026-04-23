@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Edit, Trash2, Eye, Plus } from 'lucide-react';
+import { Search, Edit, Trash2, Eye, Plus, FileDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../services/api';
 import { useToast } from '../shared/ToastContext';
@@ -170,6 +170,17 @@ const ContractList = () => {
                 </div>
 
                 <div className="mt-auto flex items-center justify-end space-x-2 pt-6 border-t border-zinc-50">
+                  {contract.pdf_file && (
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      onPress={() => window.open(contract.pdf_file, '_blank')}
+                      className="rounded-xl hover:bg-green-50 text-zinc-400 hover:text-green-600"
+                      title="Ver PDF Salvo"
+                    >
+                      <FileDown size={20} />
+                    </Button>
+                  )}
                   <Button variant="ghost" size="icon" onPress={() => handleOpenContract(contract, true)} className="rounded-xl hover:bg-solar-blue/5 text-zinc-400 hover:text-solar-blue">
                     <Eye size={20} />
                   </Button>

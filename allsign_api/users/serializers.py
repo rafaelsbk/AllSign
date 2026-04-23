@@ -1,13 +1,12 @@
 from rest_framework import serializers
-from .models import User, Client, ClientPhone, Contract
-
+from .models import User, Client, ClientPhone, Contract, ContractTemplate, Company, CompanyPhone, Professional, ProfessionalPhone, LetterheadTemplate
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework.validators import UniqueValidator
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user):
         token = super().get_token(user)
-        # Add custom claims
         if user.role:
             token['role'] = user.role.name
         else:
@@ -35,8 +34,6 @@ class ClientPhoneSerializer(serializers.ModelSerializer):
         model = ClientPhone
         fields = ('id', 'phone')
 
-from rest_framework.validators import UniqueValidator
-
 class ClientSerializer(serializers.ModelSerializer):
     seller_name = serializers.CharField(source='seller.username', read_only=True)
     phones = ClientPhoneSerializer(many=True, required=False)
@@ -62,7 +59,6 @@ class ClientSerializer(serializers.ModelSerializer):
 
     def validate_rg(self, value):
         if value:
-            # Remove caracteres não numéricos para contagem
             numbers_only = ''.join(filter(str.isdigit, value))
             if len(numbers_only) > 11:
                 raise serializers.ValidationError("O RG deve conter no máximo 11 números.")
@@ -77,18 +73,13 @@ class ClientSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         phones_data = validated_data.pop('phones', [])
-        
-        # Atualiza os campos do cliente
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
-
-        # Atualiza os telefones (substitui os antigos pelos novos para simplificar)
         if phones_data is not None:
             instance.phones.all().delete()
             for phone_data in phones_data:
                 ClientPhone.objects.create(client=instance, **phone_data)
-        
         return instance
 
 class ContractSerializer(serializers.ModelSerializer):
@@ -97,8 +88,12 @@ class ContractSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contract
         fields = '__all__'
-
-from .models import ContractTemplate, Company, CompanyPhone, Professional, ProfessionalPhone, LetterheadTemplate
+        extra_kwargs = {
+            'contract_date': {'required': False, 'allow_null': True},
+            'service_value': {'required': False, 'allow_null': True},
+            'equipment_value': {'required': False, 'allow_null': True},
+            'contract_number': {'required': False},
+        }
 
 class LetterheadTemplateSerializer(serializers.ModelSerializer):
     class Meta:

@@ -9,7 +9,7 @@ from .serializers import (
 )
 from .permissions import IsAdmin
 from django_filters.rest_framework import DjangoFilterBackend
-from .utils import render_to_pdf
+from .utils import render_to_pdf, save_contract_pdf
 from django.http import HttpResponse
 from rest_framework.views import APIView
 import docx
@@ -202,10 +202,44 @@ class ContractListCreateView(generics.ListCreateAPIView):
             queryset = queryset.filter(client_id=client_id)
         return queryset
 
+    def perform_create(self, serializer):
+        contract = serializer.save()
+        
+        # Se houver HTML final no extra_data, gera o PDF
+        html_content = contract.extra_data.get('final_html')
+        if html_content:
+            try:
+                letterhead_id = contract.extra_data.get('letterhead_id')
+                letterhead = None
+                if letterhead_id and str(letterhead_id).isdigit():
+                    letterhead = LetterheadTemplate.objects.filter(id=letterhead_id).first()
+                
+                save_contract_pdf(contract, html_content, letterhead)
+                contract.save()
+            except Exception as e:
+                print(f"Erro ao gerar PDF no perform_create: {str(e)}")
+
 class ContractDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Contract.objects.all()
     serializer_class = ContractSerializer
     permission_classes = (permissions.IsAuthenticated,)
+
+    def perform_update(self, serializer):
+        contract = serializer.save()
+        
+        # Atualiza o PDF se o HTML final mudar ou for enviado
+        html_content = contract.extra_data.get('final_html')
+        if html_content:
+            try:
+                letterhead_id = contract.extra_data.get('letterhead_id')
+                letterhead = None
+                if letterhead_id and str(letterhead_id).isdigit():
+                    letterhead = LetterheadTemplate.objects.filter(id=letterhead_id).first()
+                
+                save_contract_pdf(contract, html_content, letterhead)
+                contract.save()
+            except Exception as e:
+                print(f"Erro ao gerar PDF no perform_update: {str(e)}")
 
 class ContractTemplateListView(generics.ListCreateAPIView):
     queryset = ContractTemplate.objects.filter(is_active=True).order_by('name')
