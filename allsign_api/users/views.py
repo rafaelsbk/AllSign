@@ -79,12 +79,31 @@ class ContractTemplateUploadView(APIView):
         except Exception as e:
             return Response({"error": f"Erro interno ao processar arquivo: {str(e)}"}, status=500)
 
+import re
+
 class GenerateContractPDFView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
         try:
             data = request.data.copy()
+            html_content = data.get('html_content', '')
+
+            # Limpeza rigorosa para o xhtml2pdf
+            # 1. Remove spacers do Lexical (que causam grandes buracos no PDF)
+            html_content = re.sub(r'<div[^>]*class="lexical-spacer"[^>]*>.*?</div>', '', html_content, flags=re.DOTALL)
+            
+            # 2. Remove larguras fixas (px) que fazem a tabela ou texto passar das margens
+            html_content = re.sub(r'width:\s*\d+px;?', '', html_content)
+            html_content = re.sub(r'width="\d+"', '', html_content)
+            
+            # 3. Remove classes de preview que podem interferir no estilo final
+            html_content = html_content.replace('text-blue-600 font-bold border-b border-blue-200', '')
+            
+            # 4. Garante que as tabelas tenham largura total e bordas simples
+            html_content = html_content.replace('<table', '<table width="100%" border="1" cellspacing="0" cellpadding="4"')
+            
+            data['html_content'] = html_content
 
             # Busca o papel timbrado (por ID ou o primeiro ativo)
             letterhead_id = data.get('letterhead_id')

@@ -149,15 +149,17 @@ const TemplateList = () => {
         </div>
       )}
 
-      <ContractTemplateOverlay 
-        isOpen={isTemplateOpen}
-        onClose={() => setIsTemplateOpen(false)}
-        initialData={editingTemplate}
-        onSuccess={() => {
-          showToast(editingTemplate ? 'Modelo atualizado!' : 'Modelo criado!', 'success');
-          fetchTemplates();
-        }}
-      />
+      {isTemplateOpen && (
+        <ContractTemplateOverlay 
+          isOpen={isTemplateOpen}
+          onClose={() => setIsTemplateOpen(false)}
+          initialData={editingTemplate}
+          onSuccess={() => {
+            showToast(editingTemplate ? 'Modelo atualizado!' : 'Modelo criado!', 'success');
+            fetchTemplates();
+          }}
+        />
+      )}
     </div>
   );
 };
