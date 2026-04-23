@@ -17,6 +17,13 @@
                 height: 30mm;
             }
 
+            @frame contract_number_frame {
+                -pdf-frame-content: contract_number_content;
+                left: 14cm; width: 6cm;
+                top: {{ header_margin_percent|default:2.0 }}%;
+                height: 30mm;
+            }
+
             @frame footer_frame {
                 -pdf-frame-content: footer_content_img;
                 left: 0cm; width: 21cm;
@@ -103,6 +110,14 @@
     </style>
 </head>
 <body>
+    <div id="contract_number_content" style="text-align: right;">
+        {% if contract_number %}
+            <p style="font-size: 9pt; font-weight: bold; color: #000; margin: 0; padding-top: 5mm; padding-right: 5mm;">
+                CONTRATO Nº {{ contract_number }}
+            </p>
+        {% endif %}
+    </div>
+
     <!-- Papel Timbrado Imagens -->
     <div id="header_content">
         {% if header_image_path %}

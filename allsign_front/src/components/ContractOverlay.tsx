@@ -75,16 +75,22 @@ const ContractOverlay: React.FC<ContractOverlayProps> = ({ isOpen, onClose, clie
     return letterheadTemplates.find(t => String(t.id) === String(selectedLetterheadId)) || letterheadTemplates[0];
   }, [selectedLetterheadId, letterheadTemplates]);
 
-  // 2. Extrai variáveis do HTML do modelo
+  // 2. Extrai variáveis do HTML do modelo + Variáveis Fixas do Sistema
   const detectedVariables = useMemo(() => {
     const content = currentTemplate?.content?.html_content || '';
     const vars = new Set<string>();
+    
+    // Sempre incluímos o número do contrato como variável do sistema
+    if (content || templates.length > 0) {
+      vars.add('contract_number');
+    }
+
     const matches = content.matchAll(/\{\{\s*(\w+)\s*\}\}/g);
     for (const match of matches) {
       vars.add(match[1]);
     }
     return Array.from(vars);
-  }, [currentTemplate]);
+  }, [currentTemplate, templates]);
 
   // 3. Ao mudar a forma, pré-preenche variáveis conhecidas
   const handleTemplateChange = async (id: string) => {
@@ -114,6 +120,7 @@ const ContractOverlay: React.FC<ContractOverlayProps> = ({ isOpen, onClose, clie
         client_phone: client?.phones?.[0]?.phone || '',
         client_street: client?.street || '',
         client_city: client?.city || '',
+        contract_number: contract?.contract_number || '',
         date_day: new Date().getDate().toString().padStart(2, '0'),
         date_month: new Date().toLocaleString('pt-BR', { month: 'long' }).toUpperCase(),
         date_year: new Date().getFullYear().toString()
@@ -194,7 +201,8 @@ const ContractOverlay: React.FC<ContractOverlayProps> = ({ isOpen, onClose, clie
         client_name: client?.name,
         html_content: cleanHtml,
         doc_title: currentTemplate?.name?.toUpperCase() || 'CONTRATO',
-        letterhead_id: selectedLetterheadId !== 'none' ? selectedLetterheadId : null
+        letterhead_id: selectedLetterheadId !== 'none' ? selectedLetterheadId : null,
+        contract_number: variablesData.contract_number
       };
       const response = await api.post('/users/contracts/generate-pdf/', payload, { responseType: 'blob' });
       const url = window.URL.createObjectURL(new Blob([response.data]));
