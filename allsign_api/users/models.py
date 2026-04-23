@@ -135,34 +135,35 @@ class Contract(models.Model):
     contract_number = models.CharField(max_length=50, default="XXX")
 
     # Qualificação extra
-    nationality = models.CharField(max_length=100, default="Brasileiro (a)")
-    marital_status = models.CharField(max_length=50, default="SOLTEIRO (A)")
+    nationality = models.CharField(max_length=100, default="Brasileiro (a)", null=True, blank=True)
+    marital_status = models.CharField(max_length=50, default="SOLTEIRO (A)", null=True, blank=True)
 
     # Valores
-    service_value = models.FloatField()
-    service_value_extenso = models.CharField(max_length=255, blank=True)
-    equipment_value = models.FloatField()
-    equipment_value_extenso = models.CharField(max_length=255, blank=True)
+    service_value = models.FloatField(default=0.0, null=True, blank=True)
+    service_value_extenso = models.CharField(max_length=255, blank=True, null=True)
+    equipment_value = models.FloatField(default=0.0, null=True, blank=True)
+    equipment_value_extenso = models.CharField(max_length=255, blank=True, null=True)
 
     # Detalhes técnicos
-    validity = models.CharField(max_length=50, default="12 (DOZE) MESES")
-    inverter_brand = models.CharField(max_length=255)
-    inverter_quantity = models.IntegerField()
-    inverter_k = models.CharField(max_length=50, default="XX")
-    inverter_warranty = models.CharField(max_length=50, default="10")
+    validity = models.CharField(max_length=50, default="12 (DOZE) MESES", null=True, blank=True)
+    inverter_brand = models.CharField(max_length=255, null=True, blank=True)
+    inverter_quantity = models.IntegerField(null=True, blank=True)
+    inverter_k = models.CharField(max_length=50, default="XX", null=True, blank=True)
+    inverter_warranty = models.CharField(max_length=50, default="10", null=True, blank=True)
 
-    panels_brand = models.CharField(max_length=255)
-    panels_quantity = models.IntegerField()
-    panels_watts = models.CharField(max_length=50, default="XXX")
-    panels_warranty = models.CharField(max_length=50, default="25")
+    panels_brand = models.CharField(max_length=255, null=True, blank=True)
+    panels_quantity = models.IntegerField(null=True, blank=True)
+    panels_watts = models.CharField(max_length=50, default="XXX", null=True, blank=True)
+    panels_warranty = models.CharField(max_length=50, default="25", null=True, blank=True)
 
     # Pagamento e Prazos
-    due_date = models.CharField(max_length=500) 
-    payment_method = models.CharField(max_length=500)
-    beneficiary_units = models.CharField(max_length=500)
+    due_date = models.CharField(max_length=500, null=True, blank=True) 
+    payment_method = models.CharField(max_length=500, null=True, blank=True)
+    beneficiary_units = models.CharField(max_length=500, null=True, blank=True)
 
-    contract_date = models.DateField()
+    contract_date = models.DateField(null=True, blank=True)
     extra_data = models.JSONField(default=dict, blank=True)
+    pdf_file = models.FileField(upload_to='contracts/pdfs/', null=True, blank=True, verbose_name="Arquivo PDF")
     created_at = models.DateTimeField(auto_now_add=True)
 
 

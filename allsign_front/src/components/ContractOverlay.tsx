@@ -61,6 +61,13 @@ const ContractOverlay: React.FC<ContractOverlayProps> = ({ isOpen, onClose, clie
         const response = await api.get('/users/templates/');
         const list = Array.isArray(response.data) ? response.data : (response.data.results || []);
         setTemplates(list);
+        
+        // Se estivermos editando/visualizando um contrato existente, tenta carregar o template dele
+        if (contract?.extra_data?.template_id) {
+          setSelectedTemplateId(String(contract.extra_data.template_id));
+          const tRes = await api.get(`/users/templates/${contract.extra_data.template_id}/`);
+          setCurrentTemplate(tRes.data);
+        }
       } catch (err) {
         console.error('Erro ao buscar formas:', err);
       }
@@ -68,8 +75,36 @@ const ContractOverlay: React.FC<ContractOverlayProps> = ({ isOpen, onClose, clie
     if (isOpen) {
       fetchTemplates();
       fetchLetterheads();
+
+      if (contract) {
+        // Inicializa dados do contrato salvo
+        if (contract.extra_data) {
+          setVariablesData(contract.extra_data);
+          if (contract.extra_data.final_html) {
+            setHtmlContent(contract.extra_data.final_html);
+          }
+          if (contract.extra_data.letterhead_id) {
+            setSelectedLetterheadId(String(contract.extra_data.letterhead_id));
+          }
+        } else {
+          // Fallback para campos básicos se extra_data não existir (contratos antigos)
+          setVariablesData({
+            contract_number: contract.contract_number || '',
+            service_value: contract.service_value?.toString() || '',
+            equipment_value: contract.equipment_value?.toString() || '',
+            contract_date: contract.contract_date || '',
+          });
+        }
+      } else {
+        // Reset state for new contract
+        setSelectedTemplateId('');
+        setCurrentTemplate(null);
+        setVariablesData({});
+        setHtmlContent('');
+        setSelectedLetterheadId('none');
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, contract]);
 
   const currentLetterhead = useMemo(() => {
     return letterheadTemplates.find(t => String(t.id) === String(selectedLetterheadId)) || letterheadTemplates[0];
@@ -172,6 +207,7 @@ const ContractOverlay: React.FC<ContractOverlayProps> = ({ isOpen, onClose, clie
         extra_data: {
           ...variablesData,
           final_html: htmlContent,
+          template_id: selectedTemplateId,
           letterhead_id: selectedLetterheadId !== 'none' ? selectedLetterheadId : null
         }
       };
@@ -309,7 +345,7 @@ const ContractOverlay: React.FC<ContractOverlayProps> = ({ isOpen, onClose, clie
 
           {/* PREVIEW DO CONTRATO (ESQUERDA) - AGORA COM EDITOR */}
           <div className="flex-1 bg-zinc-100 overflow-hidden relative order-1 md:order-2 flex flex-col">
-            {!currentTemplate ? (
+            {!currentTemplate && !htmlContent ? (
               <div className="absolute inset-0 flex items-center justify-center opacity-5">
                 <h1 className="text-[120px] font-black rotate-[-15deg] select-none uppercase">Aguardando</h1>
               </div>
