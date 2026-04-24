@@ -59,6 +59,9 @@ const blockTypeToBlockName: Record<string, string> = {
   code: 'Código',
   h1: 'Título 1',
   h2: 'Título 2',
+  'ol-decimal': 'Lista Numérica',
+  'ol-alpha': 'Lista Alfabética',
+  'ol-disc': 'Lista Pontos (OL)',
   ol: 'Lista Ordenada',
   paragraph: 'Normal',
   quote: 'Citação',
@@ -92,8 +95,16 @@ export default function ToolbarPlugin() {
       if (elementDOM !== null) {
         if ($isListNode(element)) {
           const parentList = $getNearestNodeOfType(anchorNode, ListNode);
-          const type = parentList ? parentList.getTag() : element.getTag();
-          setBlockType(type);
+          const listNode = parentList || element;
+          const tag = listNode.getTag();
+          if (tag === 'ol') {
+            const style = listNode.getStyle();
+            if (style.includes('lower-alpha')) setBlockType('ol-alpha');
+            else if (style.includes('disc')) setBlockType('ol-disc');
+            else setBlockType('ol-decimal');
+          } else {
+            setBlockType(tag);
+          }
         } else {
           const type = $isHeadingNode(element)
             ? element.getTag()
@@ -199,152 +210,161 @@ export default function ToolbarPlugin() {
   };
 
   const formatNumberedList = () => {
-    if (blockType !== 'ol') {
-      editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined);
-    }
-    
-    setTimeout(() => {
-      editor.update(() => {
-        const selection = $getSelection();
-        if ($isRangeSelection(selection)) {
-          const nodes = selection.getNodes();
-          const listNodes = new Set<ListNode>();
-          
-          nodes.forEach(node => {
-            let parent = node;
-            while (parent !== null) {
-              if ($isListNode(parent) && parent.getTag() === 'ol') {
-                listNodes.add(parent);
-                break;
+    if (blockType === 'ol-decimal') {
+      editor.dispatchCommand(REMOVE_LIST_COMMAND, undefined);
+    } else {
+      if (blockType !== 'ol-decimal' && blockType !== 'ol-alpha' && blockType !== 'ol-disc') {
+        editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined);
+      }
+      
+      setTimeout(() => {
+        editor.update(() => {
+          const selection = $getSelection();
+          if ($isRangeSelection(selection)) {
+            const nodes = selection.getNodes();
+            const listNodes = new Set<ListNode>();
+            
+            nodes.forEach(node => {
+              let parent = node;
+              while (parent !== null) {
+                if ($isListNode(parent) && parent.getTag() === 'ol') {
+                  listNodes.add(parent);
+                  break;
+                }
+                parent = parent.getParent();
               }
-              parent = parent.getParent();
-            }
-          });
+            });
 
-          if (listNodes.size === 0) {
-            const anchorNode = selection.anchor.getNode();
-            let parent = anchorNode;
-            while (parent !== null) {
-              if ($isListNode(parent) && parent.getTag() === 'ol') {
-                listNodes.add(parent);
-                break;
+            if (listNodes.size === 0) {
+              const anchorNode = selection.anchor.getNode();
+              let parent = anchorNode;
+              while (parent !== null) {
+                if ($isListNode(parent) && parent.getTag() === 'ol') {
+                  listNodes.add(parent);
+                  break;
+                }
+                parent = parent.getParent();
               }
-              parent = parent.getParent();
             }
+
+            listNodes.forEach(ln => {
+              const element = editor.getElementByKey(ln.getKey());
+              if (element) {
+                element.classList.remove('list-alpha', 'list-disc');
+                element.classList.add('list-decimal');
+              }
+              ln.setStyle('list-style-type: decimal');
+            });
           }
-
-          listNodes.forEach(ln => {
-            // Remove classe alpha se houver e adiciona decimal
-            const element = editor.getElementByKey(ln.getKey());
-            if (element) {
-              element.classList.remove('list-alpha');
-              element.classList.add('list-decimal');
-            }
-            ln.setStyle('list-style-type: decimal');
-          });
-        }
-      });
-    }, 150);
+        });
+      }, 150);
+    }
     setShowListOptions(false);
   };
 
   const formatAlphaList = () => {
-    if (blockType !== 'ol') {
-      editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined);
-    }
-    
-    setTimeout(() => {
-      editor.update(() => {
-        const selection = $getSelection();
-        if ($isRangeSelection(selection)) {
-          const nodes = selection.getNodes();
-          const listNodes = new Set<ListNode>();
-          
-          nodes.forEach(node => {
-            let parent = node;
-            while (parent !== null) {
-              if ($isListNode(parent) && parent.getTag() === 'ol') {
-                listNodes.add(parent);
-                break;
+    if (blockType === 'ol-alpha') {
+      editor.dispatchCommand(REMOVE_LIST_COMMAND, undefined);
+    } else {
+      if (blockType !== 'ol-decimal' && blockType !== 'ol-alpha' && blockType !== 'ol-disc') {
+        editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined);
+      }
+      
+      setTimeout(() => {
+        editor.update(() => {
+          const selection = $getSelection();
+          if ($isRangeSelection(selection)) {
+            const nodes = selection.getNodes();
+            const listNodes = new Set<ListNode>();
+            
+            nodes.forEach(node => {
+              let parent = node;
+              while (parent !== null) {
+                if ($isListNode(parent) && parent.getTag() === 'ol') {
+                  listNodes.add(parent);
+                  break;
+                }
+                parent = parent.getParent();
               }
-              parent = parent.getParent();
-            }
-          });
+            });
 
-          if (listNodes.size === 0) {
-            const anchorNode = selection.anchor.getNode();
-            let parent = anchorNode;
-            while (parent !== null) {
-              if ($isListNode(parent) && parent.getTag() === 'ol') {
-                listNodes.add(parent);
-                break;
+            if (listNodes.size === 0) {
+              const anchorNode = selection.anchor.getNode();
+              let parent = anchorNode;
+              while (parent !== null) {
+                if ($isListNode(parent) && parent.getTag() === 'ol') {
+                  listNodes.add(parent);
+                  break;
+                }
+                parent = parent.getParent();
               }
-              parent = parent.getParent();
             }
+
+            listNodes.forEach(ln => {
+              const element = editor.getElementByKey(ln.getKey());
+              if (element) {
+                element.classList.remove('list-decimal', 'list-disc');
+                element.classList.add('list-alpha');
+              }
+              ln.setStyle('list-style-type: lower-alpha');
+            });
           }
-
-          listNodes.forEach(ln => {
-            // Remove classe decimal se houver e adiciona alpha
-            const element = editor.getElementByKey(ln.getKey());
-            if (element) {
-              element.classList.remove('list-decimal', 'list-disc');
-              element.classList.add('list-alpha');
-            }
-            ln.setStyle('list-style-type: lower-alpha');
-          });
-        }
-      });
-    }, 150);
+        });
+      }, 150);
+    }
     setShowListOptions(false);
   };
 
   const formatDiscList = () => {
-    if (blockType !== 'ol') {
-      editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined);
-    }
-    
-    setTimeout(() => {
-      editor.update(() => {
-        const selection = $getSelection();
-        if ($isRangeSelection(selection)) {
-          const nodes = selection.getNodes();
-          const listNodes = new Set<ListNode>();
-          
-          nodes.forEach(node => {
-            let parent = node;
-            while (parent !== null) {
-              if ($isListNode(parent) && parent.getTag() === 'ol') {
-                listNodes.add(parent);
-                break;
+    if (blockType === 'ol-disc') {
+      editor.dispatchCommand(REMOVE_LIST_COMMAND, undefined);
+    } else {
+      if (blockType !== 'ol-decimal' && blockType !== 'ol-alpha' && blockType !== 'ol-disc') {
+        editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined);
+      }
+      
+      setTimeout(() => {
+        editor.update(() => {
+          const selection = $getSelection();
+          if ($isRangeSelection(selection)) {
+            const nodes = selection.getNodes();
+            const listNodes = new Set<ListNode>();
+            
+            nodes.forEach(node => {
+              let parent = node;
+              while (parent !== null) {
+                if ($isListNode(parent) && parent.getTag() === 'ol') {
+                  listNodes.add(parent);
+                  break;
+                }
+                parent = parent.getParent();
               }
-              parent = parent.getParent();
-            }
-          });
+            });
 
-          if (listNodes.size === 0) {
-            const anchorNode = selection.anchor.getNode();
-            let parent = anchorNode;
-            while (parent !== null) {
-              if ($isListNode(parent) && parent.getTag() === 'ol') {
-                listNodes.add(parent);
-                break;
+            if (listNodes.size === 0) {
+              const anchorNode = selection.anchor.getNode();
+              let parent = anchorNode;
+              while (parent !== null) {
+                if ($isListNode(parent) && parent.getTag() === 'ol') {
+                  listNodes.add(parent);
+                  break;
+                }
+                parent = parent.getParent();
               }
-              parent = parent.getParent();
             }
+
+            listNodes.forEach(ln => {
+              const element = editor.getElementByKey(ln.getKey());
+              if (element) {
+                element.classList.remove('list-decimal', 'list-alpha');
+                element.classList.add('list-disc');
+              }
+              ln.setStyle('list-style-type: disc');
+            });
           }
-
-          listNodes.forEach(ln => {
-            // Remove classes anteriores e adiciona disc
-            const element = editor.getElementByKey(ln.getKey());
-            if (element) {
-              element.classList.remove('list-decimal', 'list-alpha');
-              element.classList.add('list-disc');
-            }
-            ln.setStyle('list-style-type: disc');
-          });
-        }
-      });
-    }, 150);
+        });
+      }, 150);
+    }
     setShowListOptions(false);
   };
 

@@ -6,8 +6,8 @@ AllSign is a comprehensive contract management platform specifically tailored fo
 ### Architecture
 - **Frontend:** Single Page Application (SPA) built with React 19, TypeScript, and Vite.
 - **Backend:** RESTful API powered by Django 6 and Django REST Framework.
-- **Database:** Relational (configured via `.env` in the backend).
-- **Authentication:** JWT (JSON Web Tokens) with rotation and blacklisting.
+- **Database:** Relational (PostgreSQL recommended).
+- **Authentication:** JWT (JSON Web Tokens) with rotation and blacklisting via `SimpleJWT`.
 
 ### Main Technologies
 - **Backend:**
@@ -15,14 +15,14 @@ AllSign is a comprehensive contract management platform specifically tailored fo
     - Django REST Framework 3.17.1
     - SimpleJWT (Authentication)
     - xhtml2pdf (PDF generation)
-    - python-docx & pypdf (Document content extraction)
+    - python-docx & pypdf (Document content extraction for template import)
     - django-environ (Configuration)
 - **Frontend:**
     - React 19
     - TypeScript
     - Vite
     - Tailwind CSS v4 (Styling)
-    - Tiptap (Rich Text Editor)
+    - Lexical / Tiptap (Rich Text Editing)
     - Framer Motion (Animations)
     - Lucide React (Icons)
     - Axios (API Communication)
@@ -34,7 +34,7 @@ AllSign is a comprehensive contract management platform specifically tailored fo
     - `media/`: Storage for uploaded assets (headers/footers for PDFs).
 - `allsign_front/`: Frontend React project.
     - `src/components/`: UI components organized by feature (clients, contracts, etc.).
-    - `src/services/`: API integration services.
+    - `src/services/`: API integration services (Axios with interceptors for JWT).
 - `allsign_env/`: Python virtual environment.
 
 ## Building and Running
@@ -42,7 +42,7 @@ AllSign is a comprehensive contract management platform specifically tailored fo
 ### Backend
 1. Navigate to `allsign_api/`.
 2. Activate the virtual environment: `..\allsign_env\Scripts\activate`.
-3. Install dependencies: `pip install -r requirements.txt` (if exists, else check `Lib/site-packages`).
+3. Install dependencies: `pip install -r requirements.txt`.
 4. Run migrations: `python manage.py migrate`.
 5. Start the server: `python manage.py runserver`.
 
@@ -61,16 +61,32 @@ AllSign is a comprehensive contract management platform specifically tailored fo
 ### Backend Conventions
 - Use Class-Based Views (CBVs) with DRF generics.
 - Models should include descriptive `verbose_name` and `__str__` methods.
-- PDF generation uses HTML templates located in `users/templates/users/`.
+- **PDF Generation:** Uses `xhtml2pdf`. Due to library limitations, HTML must be cleaned before rendering (removal of fixed widths, Lexical spacers, and CSS classes that are not supported). Logic is centralized in `users/utils.py` and `GenerateContractPDFView`.
 
 ### Frontend Conventions
 - Functional components with React hooks.
 - Tailwind CSS v4 for utility-first styling.
 - Framer Motion for page transitions and interactive elements.
 - Strict TypeScript usage for type safety.
+- **API Communication:** Use the central `api.ts` service which handles token refresh and error parsing.
 
-### Contract Templates
-Contract templates are stored as JSON in the database, consisting of sections and blocks. This allows for dynamic field replacement (e.g., `{{client_name}}`) during PDF generation.
+## Key Logic & Data Structures
+
+### Contract Engine
+- **Contract Model:** Uses `extra_data` (JSONField) to store all dynamic variables entered by the user.
+- **ContractTemplate Model:** Stores the "skeleton" of the contract. Can be in a "Sections/Blocks" format (JSON) or raw HTML for the Rich Text Editor.
+- **Dynamic Variable Injection:** Variables in templates use the `{{variable_name}}` syntax. The frontend resolves these in real-time within the `ContractOverlay`.
+
+### PDF Rendering Quirks
+- `xhtml2pdf` has limited CSS support. Always:
+    - Use `width="100%"` for tables.
+    - Avoid complex Flexbox/Grid in PDF templates.
+    - Use absolute paths for images in the backend (`letterhead.header_image.path`).
+
+### Permissions
+- `IsAdmin`: Only users with `role.name == 'Administrador'`.
+- `IsAdminOrManager`: For higher-level operations.
+- Default: `IsAuthenticated`.
 
 # AllSign: System Prompt & Arquitetura (SDD & Segurança)
 
